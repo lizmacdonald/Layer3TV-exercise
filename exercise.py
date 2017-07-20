@@ -44,14 +44,31 @@ df['dif'] = wknum
 df['dif'] = 'Week ' + df['dif'].astype(str)
 
 
+## Sum the information over the weeks
+
+
+## set up necessary columns
+df['Net Gain'] = df['new_subscriptions'].astype(int) - df['total_disconnects'].astype(int)
+
+sumtot = df['Net Gain'].cumsum()
+
+tot = []
+tot2 = []
+
+for i in sumtot:
+	tot.append(i)
+
+for i in reversed(tot):
+	tot2.append(i)
+
+df['Total Subscriptions'] = tot2
+
+
 ## Set up column names to be the format I want
 df.columns = ['activity_date', 'market', 'Total Connects', 'Total Disconnects', 'Self Installs', 'Pro Installs', 'Disconnects', 'Post Install Returns', 'Total Subscribers', 'dif']
 
-df['Net Gain'] = df['Total Connects'].astype(int) - df['Total Disconnects'].astype(int)
-
-df['Beginning Sub']
 
 
 
-dfout = pd.transpose(df)
+dfout = np.transpose(df)
 
