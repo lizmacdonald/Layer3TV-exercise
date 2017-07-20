@@ -39,8 +39,9 @@ for w in wk:
 for i in dif:
 	wknum.append(i / 7)
 
-
 df['dif'] = wknum
+df['dif'] = df['dif'].astype(int)
+df['dif'] = 1 + df['dif']
 df['dif'] = 'Week ' + df['dif'].astype(str)
 
 
