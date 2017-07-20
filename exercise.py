@@ -56,42 +56,53 @@ df['Net Gain'] = df['new_subscriptions'] - df['Total Disconnects']
 
 
 ## Set up cumulative sum of subscriptions
+dc = df
+dc = df.groupby(['dif']).sum().reset_index()
+
 daily = []
 daily2 = []
 
-for i in df['Net Gain']:
+for i in dc['Net Gain']:
 	daily.append(i)
 
 for i in reversed(daily):
 	daily2.append(i)
 
-df['dayR'] = daily2
-df['culday'] = df['dayR'].cumsum()
+dc['dayR'] = daily2
+dc['culday'] = dc['dayR'].cumsum()
 
 tot = []
 tot2 = []
 
-for i in df['culday']:
+for i in dc['culday']:
 	tot.append(i)
 
 for i in reversed(tot):
 	tot2.append(i)
 
-df['Total Subscriptions'] = tot2
+dc['Ending Subs'] = tot2
 
-df['Total Subscriptions'] = df['Total Subscriptions'].astype(int) - df['Net Gain']
+dc['Beginning Subscribers'] = dc['Ending Subs'] - dc['Net Gain']
 
-df['Total Subscriptions'] = tot2
-df['Beginning Subscribers'] = df['Total Subscriptions'] - df['Net Gain']
+dc_col = ['dif', 'Ending Subs', 'Beginning Subscribers']
+dc = dc[dc_col]
 
-## Update column names
-df.columns = ['activity_date', 'market', 'Total Connects', 'tot_discon', 'Self Installs', 'Pro Installs', 'Disconnects', 'Post Install Returns', 'tot_sub', 'dif', 'Total Disconnects', 'Net Gain', 'Total Subscriptions']
+df = pd.merge(df, dc, on = 'dif')
+df = df.append(dc)
+
+## Select desired columns Update column names
+
+col = ['dif', 'market', 'Beginning Subscribers', 'new_subscriptions','self_install', 'professional_install', 'Total Disconnects', 'post_install_returns', 'disconnects' ,'Net Gain', 'Ending Subs']
+
+df = df[col]
+
+df.columns = ['dif', 'market', 'Beginning Subscribers', 'Total Connects', 'Self Installs', 'Pro Installs', 'Total Disconnects', 'Post Install Returns', 'Disconnects',  'Net Gain', 'Ending Sub']
 
 
 ## Create dataframe for aggregate data 
 df_ag = df.groupby(['dif']).sum().reset_index()
 
-
+df_ag = np.transpose(df_ag)
 
 
 ## Set up column names to be the format I want
@@ -100,5 +111,5 @@ df.columns = ['activity_date', 'market', 'Total Connects', 'Total Disconnects', 
 
 
 
-dfout = np.transpose(df)
+
 
