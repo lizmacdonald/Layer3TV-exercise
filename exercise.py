@@ -56,12 +56,22 @@ df['Net Gain'] = df['new_subscriptions'] - df['Total Disconnects']
 
 
 ## Set up cumulative sum of subscriptions
-sumtot = df['Net Gain'].cumsum()
+daily = []
+daily2 = []
+
+for i in df['Net Gain']:
+	daily.append(i)
+
+for i in reversed(daily):
+	daily2.append(i)
+
+df['dayR'] = daily2
+df['culday'] = df['dayR'].cumsum()
 
 tot = []
 tot2 = []
 
-for i in sumtot:
+for i in df['culday']:
 	tot.append(i)
 
 for i in reversed(tot):
@@ -69,8 +79,13 @@ for i in reversed(tot):
 
 df['Total Subscriptions'] = tot2
 
+df['Total Subscriptions'] = df['Total Subscriptions'].astype(int) - df['Net Gain']
+
+df['Total Subscriptions'] = tot2
+df['Beginning Subscribers'] = df['Total Subscriptions'] - df['Net Gain']
+
 ## Update column names
-df.columns = ['activity_date', 'market', 'Total Connects', 'tot_discon', 'Self Installs', 'Pro Installs', 'Disconnects', 'Post Install Returns', 'tot_sub', 'dif', 'Total Disconnects', 'Net Gain']
+df.columns = ['activity_date', 'market', 'Total Connects', 'tot_discon', 'Self Installs', 'Pro Installs', 'Disconnects', 'Post Install Returns', 'tot_sub', 'dif', 'Total Disconnects', 'Net Gain', 'Total Subscriptions']
 
 
 ## Create dataframe for aggregate data 
