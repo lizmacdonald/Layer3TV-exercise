@@ -97,25 +97,27 @@ dc = dc.sort_values('Week', ascending = False)
 dc['Ending Subs'] = dc['Net Gain'].cumsum()
 dc['Beginning Subscribers'] = dc['Ending Subs'] - dc['Net Gain']
 
-dc = dc[col]
+dc = dc[wkcol]
 dc.columns = ['Week', 'Beginning Subscribers', 'Total Connects', 'Self Installs', 'Pro Installs', 'Total Disconnects', 'Post Install Returns', 'Disconnects',  'Net Gain', 'Ending Sub']
 
 ## AGGREGATE: transpose weekly the data
-df_ag = np.transpose(dc)
+dc = dc.sort_values('Week', ascending = True)
+dc = np.transpose(dc)
 
 ## AGGREGATE: add the word 'week' to the week data, clean up indexing
-df_ag.loc[['Week'], 0:132] = wk_word
-df_ag = df_ag.reset_index()
-df_ag = df_ag.set_value(0, 'index', 'Aggregate Market')
-x = pd.Series([""], index = df_ag.index)
-df_ag = df_ag.append(x, ignore_index=True)
+dc = dc.T.reset_index(drop=True).T
+dc.loc[['Week'], 0:132] = wk_word
+dc = dc.reset_index()
+dc = dc.set_value(0, 'index', 'Aggregate Market')
+x = pd.Series([""], index = dc.index)
+dc = dc.append(x, ignore_index=True)
 
 
 ## AGGREGATE: select the monthly datasbusets
 dcm = df.groupby(['Month']).sum().reset_index()
 dcm['Month'] = pd.to_datetime(dcm['Month'])
 dcm = dcm.sort_values('Month', ascending = True)
-dcm['Month'] = dcm['Month'].apply(lambda x: x.strftime('%m-%Y'))
+dcm['Month'] = dcm['Month'].apply(lambda x: x.strftime('%b-%Y'))
 dcm = dcm.reset_index(drop = True)
 
 ## AGGREGATE: Set up monthly cumulatvie beg and end subscription numbers
@@ -123,7 +125,20 @@ dcm['Ending Subs'] = dcm['Net Gain'].cumsum()
 dcm['Beginning Subscribers'] = dcm['Ending Subs'] - dcm['Net Gain']
 
 dcm = dcm[moncol]
-dcq.columns = ['Month', 'Beginning Subscribers', 'Total Connects', 'Self Installs', 'Pro Installs', 'Total Disconnects', 'Post Install Returns', 'Disconnects',  'Net Gain', 'Ending Sub']
+dcm.columns = ['Month', 'Beginning Subscribers', 'Total Connects', 'Self Installs', 'Pro Installs', 'Total Disconnects', 'Post Install Returns', 'Disconnects',  'Net Gain', 'Ending Sub']
+
+
+## AGGREGATE: transpose the monthly data
+dcm['Month'] = pd.to_datetime(dcm['Month'])
+dcm = dcm.sort_values('Month', ascending = False)
+dcm['Month'] = dcm['Month'].apply(lambda x: x.strftime('%b-%Y'))
+dcm = np.transpose(dcm)
+
+## AGGREGATE: clean up indexing
+dcm = dcm.reset_index()
+dcm = dcm.set_value(0, 'index', 'Aggregate Market')
+x = pd.Series([""], index = dcm.index)
+dcm = dcm.append(x, ignore_index=True)
 
 
 
@@ -135,9 +150,18 @@ dcq = dcq.sort_values('Quarter', ascending = True)
 dcq['Ending Subs'] = dcq['Net Gain'].cumsum()
 dcq['Beginning Subscribers'] = dcq['Ending Subs'] - dcq['Net Gain']
 
-dcq = dcq[moncol]
-dcq.columns = ['Month', 'Beginning Subscribers', 'Total Connects', 'Self Installs', 'Pro Installs', 'Total Disconnects', 'Post Install Returns', 'Disconnects',  'Net Gain', 'Ending Sub']
+dcq = dcq[qucol]
+dcq.columns = ['Quarter', 'Beginning Subscribers', 'Total Connects', 'Self Installs', 'Pro Installs', 'Total Disconnects', 'Post Install Returns', 'Disconnects',  'Net Gain', 'Ending Sub']
 
+## AGGREGATE: transpose the monthly data
+dcq = dcq.sort_values('Quarter', ascending = False)
+dcq = np.transpose(dcq)
+
+## AGGREGATE: clean up indexing
+dcq = dcq.reset_index()
+dcq = dcq.set_value(0, 'index', 'Aggregate Market')
+x = pd.Series([""], index = dcq.index)
+dcq = dcq.append(x, ignore_index=True)
 
 
 
