@@ -42,7 +42,7 @@ for i in dif:
 df['dif'] = wknum
 df['dif'] = df['dif'].astype(int)
 df['dif'] = 1 + df['dif']
-df['dif'] = 'Week ' + df['dif'].astype(str)
+#df['dif'] = 'Week ' + df['dif'].astype(str)
 
 
 ## Change the type of the columns to numeric
@@ -103,6 +103,18 @@ df.columns = ['dif', 'market', 'Beginning Subscribers', 'Total Connects', 'Self 
 ## Create dataframe for aggregate data 
 df_ag = df.groupby(['dif']).sum().reset_index()
 df_ag = np.transpose(df_ag)
+
+
+## Add in the word Week before the number in the dif column
+df['dif'] = df['dif'].astype(str)
+wks = df.dif.unique()
+wkdat = []
+for i in wks:
+	wkdat.append('Week ' + str(i))
+
+wkdat = np.array(wkdat)
+df_ag.loc[['dif'], 0:132] = wkdat
+
 df_ag = df_ag.reset_index()
 df_ag = df_ag.set_value(0, 'index', 'Aggregate')
 df_ag = df_ag.drop([1, ])
@@ -113,6 +125,7 @@ df_ag = df_ag.append(x, ignore_index=True)
 df_atl = df[df['market'] == 'Atlanta']
 df_atl = df_atl.groupby(['dif', 'market']).sum().reset_index()
 df_atl = pd.DataFrame(np.transpose(df_atl))
+df_atl.loc[['dif'], 0:132] = wkdat
 df_atl = df_atl.reset_index()
 df_atl = df_atl.set_value(0, 'index', 'Atlanta')
 df_atl = df_atl.drop([1, ])
@@ -124,6 +137,7 @@ df_atl = df_atl.append(x, ignore_index=True)
 df_sea = df[df['market'] == 'Seattle']
 df_sea = df_sea.groupby(['dif', 'market']).sum().reset_index()
 df_sea = pd.DataFrame(np.transpose(df_sea))
+df_sea.loc[['dif'], 0:132] = wkdat
 df_sea = df_sea.reset_index()
 df_sea = df_sea.set_value(0, 'index', 'Seattle')
 df_sea = df_sea.drop([1, ])
