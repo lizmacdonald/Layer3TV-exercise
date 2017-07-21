@@ -158,11 +158,14 @@ df_atl = np.transpose(da)
 ## ATLANTA: add the word 'week' to the week data, clean up indexing
 df_atl.loc[['Week'], 0:132] = wk_word
 
-y = df_atl.index
-
-## add index to first column of dataframe
-
+## ATLANTA: add index to first column of dataframe
+df_atl['index'] = df_atl.index
 df_atl = df_atl.reset_index(drop = True)
+
+cols = df_atl.columns.tolist()
+cols = [cols[-1]]+cols[:-1]
+df_atl = df_atl.reindex(columns=cols)
+
 df_atl = df_atl.set_value(0, 'index', 'Atlanta')
 
 
