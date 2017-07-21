@@ -8,6 +8,7 @@ import openpyxl as px
 import pandas as pd
 import numpy as np
 import xlsxwriter
+from datetime import datetime
 
 
 ## read in data
@@ -20,7 +21,6 @@ df = df.drop([0, ])
 
 
 ## Set up week number column
-## Need to find the min date so week 1 is the first week not the last week
 dat_form = "%Y-%m-%d %H:%S:%M"
 max_day = pd.to_datetime(df.iloc[1,0], format = dat_form)
 days = df.iloc[:,0]
@@ -42,6 +42,27 @@ for i in dif:
 df['Week'] = wknum
 df['Week'] = df['Week'].astype(int)
 df['Week'] = 1 + df['Week']
+
+
+## Set up monthy number columns
+month = []
+mon_num = []
+
+for d in days:
+	month.append(pd.to_datetime(d, format = dat_form))
+
+def diff_month(w):
+	return(max_day.year - w.year) * 12 + max_day.month - w.month
+
+for w in month:
+	mon_num.append(diff_month(w))
+
+df['Month'] = mon_num
+df['Month'] = df['Month'].astype(int)
+df['Month'] = 1 + df['Month']
+
+
+
 
 
 ## Change the type of the columns to numeric
