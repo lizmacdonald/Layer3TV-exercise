@@ -55,40 +55,142 @@ df['Total Disconnects'] = df['post_install_returns'] + df['disconnects']
 df['Net Gain'] = df['new_subscriptions'] - df['Total Disconnects']
 
 
-## Set up cumulative sum of subscriptions
-dc = df
+## Create a list for adding in the word "week" before the week number
+
+df['Week'] = df['Week'].astype(str)
+wk_unique = df.Week.unique()
+wk_word = []
+for i in wk_unique:
+	wk_word.append('Week ' + str(i))
+wkdat = np.array(wk_word)
+
+
+## Set up separate dataframes for each market
+
+## Aggregate
 dc = df.groupby(['Week']).sum().reset_index()
 
-daily = []
-daily2 = []
+## Seattle
+ds = df[df['market'] == 'Seattle']
+ds['Week'] = ds['Week'].astype(int)
+ds = ds.groupby(['Week']).sum().reset_index()
+
+
+## AGGREGATE: Set up cumulatvie beg and end subscription numbers
+
+daily_ag = []
+daily_ag2 = []
+tot_ag = []
+tot_ag2 = []
 
 for i in dc['Net Gain']:
-	daily.append(i)
+	daily_ag.append(i)
 
-for i in reversed(daily):
-	daily2.append(i)
+for i in reversed(daily_ag):
+	daily_ag2.append(i)
 
-dc['dayR'] = daily2
-dc['culday'] = dc['dayR'].cumsum()
+dc['Ag_cul'] = daily_ag2
+dc['Ag_cul'] = dc['Ag_cul'].cumsum()
 
-tot = []
-tot2 = []
+for i in dc['Ag_cul']:
+	tot_ag.append(i)
 
-for i in dc['culday']:
-	tot.append(i)
+for i in reversed(tot_ag):
+	tot_ag2.append(i)
 
-for i in reversed(tot):
-	tot2.append(i)
+dc['Ending Subs'] = tot_ag2
+dc['beg_sub_ag'] = dc['Ending Subs'] - dc['Net Gain']
 
-dc['Ending Subs'] = tot2
 
-dc['Beginning Subscribers'] = dc['Ending Subs'] - dc['Net Gain']
+## AGGREGATE: Select the desired columns
+col = ['Week', 'market', 'Beginning Subscribers', 'new_subscriptions','self_install', 'professional_install', 'Total Disconnects', 'post_install_returns', 'disconnects' ,'Net Gain', 'Ending Subs']
 
-dc_col = ['Week', 'Ending Subs', 'Beginning Subscribers']
+dc = dc[col]
+dc.columns = ['Week', 'market', 'Beginning Subscribers', 'Total Connects', 'Self Installs', 'Pro Installs', 'Total Disconnects', 'Post Install Returns', 'Disconnects',  'Net Gain', 'Ending Sub']
+
+
+## AGGREGATE: transpose the data
+df_ag = np.transpose(dc)
+
+## AGGREGATE: add the word 'week' to the week data, clean up indexing
+df_ag.loc[['Week'], 0:132] = wkdat
+df_ag = df_ag.reset_index()
+df_ag = df_ag.set_value(0, 'index', 'Aggregate')
+x = pd.Series([""], index = df_ag.index)
+df_ag = df_ag.append(x, ignore_index=True)
+
+
+
+
+## ATLANTA: select data
+da = df[df['market'] == 'Atlanta']
+da['Week'] = da['Week'].astype(int)
+da = da.groupby(['Week']).sum().reset_index()
+
+
+## ATLANTA: Calculate the atlanta cumulative numbers
+daily_at = []
+daily_at2 = []
+tot_at = []
+tot_at2 = []
+
+for i in da['Net Gain']:
+	daily_at.append(i)
+
+for i in reversed(daily_at):
+	daily_at2.append(i)
+
+da['At_cul'] = daily_at2
+da['At_cul'] = da['At_cul'].cumsum()
+
+for i in da['At_cul']:
+	tot_at.append(i)
+
+for i in reversed(tot_at):
+	tot_at2.append(i)
+
+da['end_sub_at'] = tot_at2
+da['beg_sub_at'] = da['end_sub_at'] - da['Net Gain']
+
+
+## Calculate the atlanta cumulative numbers
+daily_se = []
+daily_se2 = []
+tot_se = []
+tot_se2 = []
+
+for i in ds['Net Gain']:
+	daily_se.append(i)
+
+for i in reversed(daily_se):
+	daily_se2.append(i)
+
+ds['Se_cul'] = daily_se2
+ds['Se_cul'] = ds['Se_cul'].cumsum()
+
+for i in ds['Se_cul']:
+	tot_se.append(i)
+
+for i in reversed(tot_se):
+	tot_se2.append(i)
+
+ds['end_sub_se'] = tot_se2
+ds['beg_sub_se'] = ds['end_sub_se'] - ds['Net Gain']
+
+
+## Select the beginning and end subscriber columns from each dataset
+dc_col = ['Week', 'beg_sub_ag', 'end_sub_ag']
 dc = dc[dc_col]
 
+da_col = ['Week', 'beg_sub_at', 'end_sub_at']
+da = da[da_col]
+
+ds_col = ['Week', 'beg_sub_se', 'end_sub_se']
+ds = ds[ds_col]
+
 df = pd.merge(df, dc, on = 'Week')
-df = df.append(dc)
+df = pd.merge(df, da, on = "Week")
+df = pd.merge(df, ds, on = "Week")
 
 ## Select desired columns Update column names
 
@@ -101,45 +203,28 @@ df.columns = ['Week', 'market', 'Beginning Subscribers', 'Total Connects', 'Self
 
 ## Create dataframe for aggregate data 
 df_ag = df.groupby(['Week']).sum().reset_index()
-df_ag = np.transpose(df_ag)
-
-
-## Add in the word Week before the number in the dif column
-df['Week'] = df['Week'].astype(str)
-wks = df.Week.unique()
-wkdat = []
-for i in wks:
-	wkdat.append('Week ' + str(i))
-
-wkdat = np.array(wkdat)
-df_ag.loc[['Week'], 0:132] = wkdat
-
-df_ag = df_ag.reset_index()
-df_ag = df_ag.set_value(0, 'index', 'Aggregate')
-df_ag = df_ag.drop([1, ])
-x = pd.Series([""], index = df_ag.index)
-df_ag = df_ag.append(x, ignore_index=True)
 
 ## Create Dataframe fro Atlanta data
 df_atl = df[df['market'] == 'Atlanta']
-df_atl = df_atl.groupby(['Week', 'market']).sum().reset_index()
+df_atl['Week'] = df_atl['Week'].astype(int)
+df_atl = df_atl.groupby(['Week']).sum().reset_index()
 df_atl = pd.DataFrame(np.transpose(df_atl))
 df_atl.loc[['Week'], 0:132] = wkdat
 df_atl = df_atl.reset_index()
 df_atl = df_atl.set_value(0, 'index', 'Atlanta')
-df_atl = df_atl.drop([1, ])
 x = pd.Series([" "], index = df_atl.index)
 df_atl = df_atl.append(x, ignore_index=True)
 
 
 ## Create Dataframe for Seattle data
 df_sea = df[df['market'] == 'Seattle']
-df_sea = df_sea.groupby(['Week', 'market']).sum().reset_index()
+df_sea['Week'] = df_sea['Week'].astype(int)
+df_sea = df_sea.groupby(['Week']).sum().reset_index()
 df_sea = pd.DataFrame(np.transpose(df_sea))
 df_sea.loc[['Week'], 0:132] = wkdat
 df_sea = df_sea.reset_index()
 df_sea = df_sea.set_value(0, 'index', 'Seattle')
-df_sea = df_sea.drop([1, ])
+
 
 ## Bind datasets together and remove NaNs
 frame = [df_ag, df_atl, df_sea]
