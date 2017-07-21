@@ -103,26 +103,39 @@ df.columns = ['dif', 'market', 'Beginning Subscribers', 'Total Connects', 'Self 
 ## Create dataframe for aggregate data 
 df_ag = df.groupby(['dif']).sum().reset_index()
 df_ag = np.transpose(df_ag)
+df_ag = df_ag.reset_index()
+df_ag = df_ag.set_value(0, 'index', 'Aggregate')
+df_ag = df_ag.drop([1, ])
+x = pd.Series([""], index = df_ag.index)
+df_ag = df_ag.append(x, ignore_index=True)
 
+## Create Dataframe fro Atlanta data
 df_atl = df[df['market'] == 'Atlanta']
 df_atl = df_atl.groupby(['dif', 'market']).sum().reset_index()
-df_atl = np.transpose(df_atl)
-df_atl = df_atl.drop(['market', ])
-df_atl = df_atl.rename(index = {'dif': 'Atlanta'})
+df_atl = pd.DataFrame(np.transpose(df_atl))
+df_atl = df_atl.reset_index()
+df_atl = df_atl.set_value(0, 'index', 'Atlanta')
+df_atl = df_atl.drop([1, ])
+x = pd.Series([" "], index = df_atl.index)
+df_atl = df_atl.append(x, ignore_index=True)
 
-## creating a column at the start of the df with the parameters to display
-df_atl['Market'] = df_atl.index
-y = df_atl[df_atl.columns[-1:]]
-df_atl.drop('Market', 1)
-df_atl.insert(0, 'Market', y)
 
+## Create Dataframe for Seattle data
 df_sea = df[df['market'] == 'Seattle']
 df_sea = df_sea.groupby(['dif', 'market']).sum().reset_index()
-df_sea = np.transpose(df_sea)
-df_sea = df_sea.drop(['market', ])
-df_sea = df_sea.rename(index = {'dif': 'Seattle'})
-df_sea['Market'] = df_sea.index
-y = df_sea[df_sea.columns[-1:]]
+df_sea = pd.DataFrame(np.transpose(df_sea))
+df_sea = df_sea.reset_index()
+df_sea = df_sea.set_value(0, 'index', 'Seattle')
+df_sea = df_sea.drop([1, ])
+
+## Bind datasets together and remove NaNs
+frame = [df_ag, df_atl, df_sea]
+df_f = pd.concat(frame)
+
+df_f = df_f.fillna("")
+
+
+
 
 
 
