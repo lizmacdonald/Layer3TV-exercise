@@ -117,8 +117,6 @@ df_ag = df_ag.append(x, ignore_index=True)
 
 
 
-
-
 ## ATLANTA: select data
 da = df[df['market'] == 'Atlanta']
 da['Week'] = da['Week'].astype(int)
@@ -159,12 +157,17 @@ df_atl = np.transpose(da)
 
 ## ATLANTA: add the word 'week' to the week data, clean up indexing
 df_atl.loc[['Week'], 0:132] = wk_word
+
+y = df_atl.index
+
+## add index to first column of dataframe
+
 df_atl = df_atl.reset_index(drop = True)
 df_atl = df_atl.set_value(0, 'index', 'Atlanta')
+
+
 x = pd.Series([" "], index = df_atl.index)
 df_atl = df_atl.append(x, ignore_index=True)
-
-
 
 
 
