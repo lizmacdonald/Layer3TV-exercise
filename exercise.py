@@ -115,6 +115,14 @@ df_ag = df_ag.set_value(0, 'index', 'Aggregate')
 x = pd.Series([""], index = df_ag.index)
 df_ag = df_ag.append(x, ignore_index=True)
 
+## AGGREGATE: add header row to describe report
+title = ' Subscriber Report Week-Over-Week 2017'
+d = pd.DataFrame(columns = df_ag.columns)
+d = d.set_value(len(d), 'index', " ")
+df_ag.index = df_ag.index + 1
+df_ag = d.append(df_ag)
+
+df_ag = df_ag.set_value(0, 'index', title)
 
 
 ## ATLANTA: select data
@@ -163,8 +171,8 @@ df_atl['index'] = df_atl.index
 df_atl = df_atl.reset_index(drop = True)
 
 cols = df_atl.columns.tolist()
-cols = [cols[-1]]+cols[:-1]
-df_atl = df_atl.reindex(columns=cols)
+cols = [cols[-1]] + cols[ : -1]
+df_atl = df_atl.reindex(columns = cols)
 
 df_atl = df_atl.set_value(0, 'index', 'Atlanta')
 
@@ -214,7 +222,11 @@ ds.columns = ['Week', 'Beginning Subscribers', 'Total Connects', 'Self Installs'
 ## SEATTLE: transpose add the word 'week' to the week data, clean up indexing
 df_sea = np.transpose(ds)
 df_sea.loc[['Week'], 0:132] = wk_word
+
+## SEATTLE: add index names to first column of dataset
 df_sea = df_sea.reset_index(drop = True)
+df_sea = df_sea.reindex(columns=cols)
+
 df_sea = df_sea.set_value(0, 'index', 'Seattle')
 
 
