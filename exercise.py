@@ -72,12 +72,6 @@ wk_word = np.array(wk_word)
 ## Aggregate
 dc = df.groupby(['Week']).sum().reset_index()
 
-## Seattle
-ds = df[df['market'] == 'Seattle']
-ds['Week'] = ds['Week'].astype(int)
-ds = ds.groupby(['Week']).sum().reset_index()
-
-
 ## AGGREGATE: Set up cumulatvie beg and end subscription numbers
 
 daily_ag = []
@@ -123,13 +117,15 @@ df_ag = df_ag.append(x, ignore_index=True)
 
 
 
+
+
 ## ATLANTA: select data
 da = df[df['market'] == 'Atlanta']
 da['Week'] = da['Week'].astype(int)
 da = da.groupby(['Week']).sum().reset_index()
 
 
-## ATLANTA: Calculate the atlanta cumulative numbers
+## ATLANTA: Calculate the cumulative numbers
 daily_at = []
 daily_at2 = []
 tot_at = []
@@ -150,16 +146,35 @@ for i in da['At_cul']:
 for i in reversed(tot_at):
 	tot_at2.append(i)
 
-da['Ending Sub'] = tot_at2
-da['Beginning Subscribers'] = da['Ending Sub'] - da['Net Gain']
+da['Ending Subs'] = tot_at2
+da['Beginning Subscribers'] = da['Ending Subs'] - da['Net Gain']
+
+
+## ATLANTA: Select the desired columns
+da = da[col]
+dacolumns = ['Week', 'Beginning Subscribers', 'Total Connects', 'Self Installs', 'Pro Installs', 'Total Disconnects', 'Post Install Returns', 'Disconnects',  'Net Gain', 'Ending Sub']
+
+## ATLANTA: transpose the data
+df_atl = np.transpose(da)
+
+## ATLANTA: add the word 'week' to the week data, clean up indexing
+df_atl.loc[['Week'], 0:132] = wk_word
+df_atl = df_atl.reset_index(drop = True)
+df_atl = df_atl.set_value(0, 'index', 'Atlanta')
+x = pd.Series([" "], index = df_atl.index)
+df_atl = df_atl.append(x, ignore_index=True)
 
 
 
 
 
+## SEATTLE: Select data subset
+ds = df[df['market'] == 'Seattle']
+ds['Week'] = ds['Week'].astype(int)
+ds = ds.groupby(['Week']).sum().reset_index()
 
 
-## Calculate the atlanta cumulative numbers
+## SEATTLE: Calculate the atlanta cumulative numbers
 daily_se = []
 daily_se2 = []
 tot_se = []
@@ -180,55 +195,20 @@ for i in ds['Se_cul']:
 for i in reversed(tot_se):
 	tot_se2.append(i)
 
-ds['end_sub_se'] = tot_se2
-ds['beg_sub_se'] = ds['end_sub_se'] - ds['Net Gain']
+ds['Ending Subs'] = tot_se2
+ds['Beginning Subscribers'] = ds['Ending Subs'] - ds['Net Gain']
 
 
-## Select the beginning and end subscriber columns from each dataset
-dc_col = ['Week', 'beg_sub_ag', 'end_sub_ag']
-dc = dc[dc_col]
+## SEATTLE: Select desired columns Update column names
+ds = ds[col]
 
-da_col = ['Week', 'beg_sub_at', 'end_sub_at']
-da = da[da_col]
-
-ds_col = ['Week', 'beg_sub_se', 'end_sub_se']
-ds = ds[ds_col]
-
-df = pd.merge(df, dc, on = 'Week')
-df = pd.merge(df, da, on = "Week")
-df = pd.merge(df, ds, on = "Week")
-
-## Select desired columns Update column names
-
-col = ['Week', 'market', 'Beginning Subscribers', 'new_subscriptions','self_install', 'professional_install', 'Total Disconnects', 'post_install_returns', 'disconnects' ,'Net Gain', 'Ending Subs']
-
-df = df[col]
-
-df.columns = ['Week', 'market', 'Beginning Subscribers', 'Total Connects', 'Self Installs', 'Pro Installs', 'Total Disconnects', 'Post Install Returns', 'Disconnects',  'Net Gain', 'Ending Sub']
+ds.columns = ['Week', 'Beginning Subscribers', 'Total Connects', 'Self Installs', 'Pro Installs', 'Total Disconnects', 'Post Install Returns', 'Disconnects',  'Net Gain', 'Ending Sub']
 
 
-## Create dataframe for aggregate data 
-df_ag = df.groupby(['Week']).sum().reset_index()
-
-## Create Dataframe fro Atlanta data
-df_atl = df[df['market'] == 'Atlanta']
-df_atl['Week'] = df_atl['Week'].astype(int)
-df_atl = df_atl.groupby(['Week']).sum().reset_index()
-df_atl = pd.DataFrame(np.transpose(df_atl))
-df_atl.loc[['Week'], 0:132] = wk_word
-df_atl = df_atl.reset_index()
-df_atl = df_atl.set_value(0, 'index', 'Atlanta')
-x = pd.Series([" "], index = df_atl.index)
-df_atl = df_atl.append(x, ignore_index=True)
-
-
-## Create Dataframe for Seattle data
-df_sea = df[df['market'] == 'Seattle']
-df_sea['Week'] = df_sea['Week'].astype(int)
-df_sea = df_sea.groupby(['Week']).sum().reset_index()
-df_sea = pd.DataFrame(np.transpose(df_sea))
+## SEATTLE: transpose add the word 'week' to the week data, clean up indexing
+df_sea = np.transpose(ds)
 df_sea.loc[['Week'], 0:132] = wk_word
-df_sea = df_sea.reset_index()
+df_sea = df_sea.reset_index(drop = True)
 df_sea = df_sea.set_value(0, 'index', 'Seattle')
 
 
