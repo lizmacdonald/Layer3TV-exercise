@@ -60,9 +60,11 @@ df['Net Gain'] = df['new_subscriptions'] - df['Total Disconnects']
 df['Week'] = df['Week'].astype(str)
 wk_unique = df.Week.unique()
 wk_word = []
+
 for i in wk_unique:
 	wk_word.append('Week ' + str(i))
-wkdat = np.array(wk_word)
+
+wk_word = np.array(wk_word)
 
 
 ## Set up separate dataframes for each market
@@ -99,26 +101,25 @@ for i in reversed(tot_ag):
 	tot_ag2.append(i)
 
 dc['Ending Subs'] = tot_ag2
-dc['beg_sub_ag'] = dc['Ending Subs'] - dc['Net Gain']
+dc['Beginning Subscribers'] = dc['Ending Subs'] - dc['Net Gain']
 
 
 ## AGGREGATE: Select the desired columns
-col = ['Week', 'market', 'Beginning Subscribers', 'new_subscriptions','self_install', 'professional_install', 'Total Disconnects', 'post_install_returns', 'disconnects' ,'Net Gain', 'Ending Subs']
+col = ['Week', 'Beginning Subscribers', 'new_subscriptions','self_install', 'professional_install', 'Total Disconnects', 'post_install_returns', 'disconnects' ,'Net Gain', 'Ending Subs']
 
 dc = dc[col]
-dc.columns = ['Week', 'market', 'Beginning Subscribers', 'Total Connects', 'Self Installs', 'Pro Installs', 'Total Disconnects', 'Post Install Returns', 'Disconnects',  'Net Gain', 'Ending Sub']
+dc.columns = ['Week', 'Beginning Subscribers', 'Total Connects', 'Self Installs', 'Pro Installs', 'Total Disconnects', 'Post Install Returns', 'Disconnects',  'Net Gain', 'Ending Sub']
 
 
 ## AGGREGATE: transpose the data
 df_ag = np.transpose(dc)
 
 ## AGGREGATE: add the word 'week' to the week data, clean up indexing
-df_ag.loc[['Week'], 0:132] = wkdat
+df_ag.loc[['Week'], 0:132] = wk_word
 df_ag = df_ag.reset_index()
 df_ag = df_ag.set_value(0, 'index', 'Aggregate')
 x = pd.Series([""], index = df_ag.index)
 df_ag = df_ag.append(x, ignore_index=True)
-
 
 
 
@@ -149,8 +150,13 @@ for i in da['At_cul']:
 for i in reversed(tot_at):
 	tot_at2.append(i)
 
-da['end_sub_at'] = tot_at2
-da['beg_sub_at'] = da['end_sub_at'] - da['Net Gain']
+da['Ending Sub'] = tot_at2
+da['Beginning Subscribers'] = da['Ending Sub'] - da['Net Gain']
+
+
+
+
+
 
 
 ## Calculate the atlanta cumulative numbers
@@ -209,7 +215,7 @@ df_atl = df[df['market'] == 'Atlanta']
 df_atl['Week'] = df_atl['Week'].astype(int)
 df_atl = df_atl.groupby(['Week']).sum().reset_index()
 df_atl = pd.DataFrame(np.transpose(df_atl))
-df_atl.loc[['Week'], 0:132] = wkdat
+df_atl.loc[['Week'], 0:132] = wk_word
 df_atl = df_atl.reset_index()
 df_atl = df_atl.set_value(0, 'index', 'Atlanta')
 x = pd.Series([" "], index = df_atl.index)
@@ -221,7 +227,7 @@ df_sea = df[df['market'] == 'Seattle']
 df_sea['Week'] = df_sea['Week'].astype(int)
 df_sea = df_sea.groupby(['Week']).sum().reset_index()
 df_sea = pd.DataFrame(np.transpose(df_sea))
-df_sea.loc[['Week'], 0:132] = wkdat
+df_sea.loc[['Week'], 0:132] = wk_word
 df_sea = df_sea.reset_index()
 df_sea = df_sea.set_value(0, 'index', 'Seattle')
 
