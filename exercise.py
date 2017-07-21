@@ -59,7 +59,15 @@ df['Month'] = 1 + df['Month']
 
 
 ## Set up quarterly number column
-df['Quarter'] = pd.to_datetime(df['activity_date']).dt.quarter
+quart = pd.to_datetime(df['activity_date']).dt.quarter
+
+year = []
+
+for d in days:
+	year.append(d.year)
+
+df['Quarter'] = year
+df['Quarter'] = df['Quarter'].astype(str) + ' ' + 'Q' + quart.astype(str)
 
 
 ## Change the type of the columns to numeric
