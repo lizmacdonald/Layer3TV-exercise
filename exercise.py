@@ -109,7 +109,7 @@ dc = dc.T.reset_index(drop=True).T
 dc.loc[['Week'], 0:132] = wk_word
 dc = dc.reset_index()
 dc = dc.set_value(0, 'index', 'Aggregate Market')
-x = pd.Series([""], index = dc.index)
+blankrow = pd.Series([""], index = dc.index)
 dc = dc.append(x, ignore_index=True)
 
 
@@ -137,8 +137,7 @@ dcm = np.transpose(dcm)
 ## AGGREGATE: clean up indexing
 dcm = dcm.reset_index()
 dcm = dcm.set_value(0, 'index', 'Aggregate Market')
-x = pd.Series([""], index = dcm.index)
-dcm = dcm.append(x, ignore_index=True)
+dcm = dcm.append(blankrow, ignore_index=True)
 
 
 
@@ -160,77 +159,78 @@ dcq = np.transpose(dcq)
 ## AGGREGATE: clean up indexing
 dcq = dcq.reset_index()
 dcq = dcq.set_value(0, 'index', 'Aggregate Market')
-x = pd.Series([""], index = dcq.index)
-dcq = dcq.append(x, ignore_index=True)
+dcq = dcq.append(blankrow, ignore_index=True)
 
 
 
-
-## AGGREGATE: transpose the data
-df_ag = np.transpose(dc)
-
-## AGGREGATE: add the word 'week' to the week data, clean up indexing
-df_ag.loc[['Week'], 0:132] = wk_word
-df_ag = df_ag.reset_index()
-df_ag = df_ag.set_value(0, 'index', 'Aggregate Market')
-x = pd.Series([""], index = df_ag.index)
-df_ag = df_ag.append(x, ignore_index=True)
-
-
-## ATLANTA: select data
+## ATLANTA: select datasubset
 da = df[df['market'] == 'Atlanta']
+
+## ATLANTA: subset for the weekly data
 da['Week'] = da['Week'].astype(int)
 da = da.groupby(['Week']).sum().reset_index()
+da = da.sort_values('Week', ascending = False)
 
 
-## ATLANTA: Calculate the cumulative numbers
-daily_at = []
-daily_at2 = []
-tot_at = []
-tot_at2 = []
-
-for i in da['Net Gain']:
-	daily_at.append(i)
-
-for i in reversed(daily_at):
-	daily_at2.append(i)
-
-da['At_cul'] = daily_at2
-da['At_cul'] = da['At_cul'].cumsum()
-
-for i in da['At_cul']:
-	tot_at.append(i)
-
-for i in reversed(tot_at):
-	tot_at2.append(i)
-
-da['Ending Subs'] = tot_at2
+## ATLANTA: Set up weekly cumulatvie beg and end subscription numbers
+da['Ending Subs'] = da['Net Gain'].cumsum()
 da['Beginning Subscribers'] = da['Ending Subs'] - da['Net Gain']
 
-
-## ATLANTA: Select the desired columns
-da = da[col]
+da = da[wkcol]
 da.columns = ['Week', 'Beginning Subscribers', 'Total Connects', 'Self Installs', 'Pro Installs', 'Total Disconnects', 'Post Install Returns', 'Disconnects',  'Net Gain', 'Ending Sub']
 
-## ATLANTA: transpose the data
-df_atl = np.transpose(da)
+## ATLANTA: transpose weekly the data
+da = da.sort_values('Week', ascending = True)
+da = np.transpose(da)
+
 
 ## ATLANTA: add the word 'week' to the week data, clean up indexing
-df_atl.loc[['Week'], 0:132] = wk_word
-
-## ATLANTA: add index to first column of dataframe
-df_atl['index'] = df_atl.index
-df_atl = df_atl.reset_index(drop = True)
-
-cols = df_atl.columns.tolist()
+da.loc[['Week'], 0:132] = wk_word
+da['index'] = da.index
+da = da.reset_index(drop = True)
+cols = da.columns.tolist()
 cols = [cols[-1]] + cols[ : -1]
-df_atl = df_atl.reindex(columns = cols)
+da = df_atl.reindex(columns = cols)
+da = df_atl.set_value(0, 'index', 'Atlanta Market')
+x = pd.Series([" "], index = da.index)
+da = df_atl.append(x, ignore_index=True)
 
-df_atl = df_atl.set_value(0, 'index', 'Atlanta Market')
 
 
-x = pd.Series([" "], index = df_atl.index)
-df_atl = df_atl.append(x, ignore_index=True)
+## ATLANTA: select the monthly datasbusets
+dcm = df.groupby(['Month']).sum().reset_index()
+dcm['Month'] = pd.to_datetime(dcm['Month'])
+dcm = dcm.sort_values('Month', ascending = True)
+dcm['Month'] = dcm['Month'].apply(lambda x: x.strftime('%b-%Y'))
+dcm = dcm.reset_index(drop = True)
+
+## ATLANTA: Set up monthly cumulatvie beg and end subscription numbers
+dcm['Ending Subs'] = dcm['Net Gain'].cumsum()
+dcm['Beginning Subscribers'] = dcm['Ending Subs'] - dcm['Net Gain']
+
+dcm = dcm[moncol]
+dcm.columns = ['Month', 'Beginning Subscribers', 'Total Connects', 'Self Installs', 'Pro Installs', 'Total Disconnects', 'Post Install Returns', 'Disconnects',  'Net Gain', 'Ending Sub']
+
+
+## ATLANTA: transpose the monthly data
+dcm['Month'] = pd.to_datetime(dcm['Month'])
+dcm = dcm.sort_values('Month', ascending = False)
+dcm['Month'] = dcm['Month'].apply(lambda x: x.strftime('%b-%Y'))
+dcm = np.transpose(dcm)
+
+## AGGREGATE: clean up indexing
+dcm = dcm.reset_index()
+dcm = dcm.set_value(0, 'index', 'Aggregate Market')
+x = pd.Series([""], index = dcm.index)
+dcm = dcm.append(x, ignore_index=True)
+
+
+
+
+
+
+
+
 
 
 
