@@ -46,23 +46,20 @@ df['Week'] = 1 + df['Week']
 
 ## Set up monthy number columns
 month = []
-mon_num = []
-
-for d in days:
-	month.append(pd.to_datetime(d, format = dat_form))
 
 def diff_month(w):
 	return(max_day.year - w.year) * 12 + max_day.month - w.month
 
-for w in month:
-	mon_num.append(diff_month(w))
+for w in week:
+	month.append(diff_month(w))
 
-df['Month'] = mon_num
+df['Month'] = month
 df['Month'] = df['Month'].astype(int)
 df['Month'] = 1 + df['Month']
 
 
-
+## Set up quarterly number column
+df['Quarter'] = pd.to_datetime(df['activity_date']).dt.quarter
 
 
 ## Change the type of the columns to numeric
