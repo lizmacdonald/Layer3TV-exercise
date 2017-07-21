@@ -111,18 +111,9 @@ df_ag = np.transpose(dc)
 ## AGGREGATE: add the word 'week' to the week data, clean up indexing
 df_ag.loc[['Week'], 0:132] = wk_word
 df_ag = df_ag.reset_index()
-df_ag = df_ag.set_value(0, 'index', 'Aggregate')
+df_ag = df_ag.set_value(0, 'index', 'Aggregate Market')
 x = pd.Series([""], index = df_ag.index)
 df_ag = df_ag.append(x, ignore_index=True)
-
-## AGGREGATE: add header row to describe report
-title = ' Subscriber Report Week-Over-Week 2017'
-d = pd.DataFrame(columns = df_ag.columns)
-d = d.set_value(len(d), 'index', " ")
-df_ag.index = df_ag.index + 1
-df_ag = d.append(df_ag)
-
-df_ag = df_ag.set_value(0, 'index', title)
 
 
 ## ATLANTA: select data
@@ -158,7 +149,7 @@ da['Beginning Subscribers'] = da['Ending Subs'] - da['Net Gain']
 
 ## ATLANTA: Select the desired columns
 da = da[col]
-dacolumns = ['Week', 'Beginning Subscribers', 'Total Connects', 'Self Installs', 'Pro Installs', 'Total Disconnects', 'Post Install Returns', 'Disconnects',  'Net Gain', 'Ending Sub']
+da.columns = ['Week', 'Beginning Subscribers', 'Total Connects', 'Self Installs', 'Pro Installs', 'Total Disconnects', 'Post Install Returns', 'Disconnects',  'Net Gain', 'Ending Sub']
 
 ## ATLANTA: transpose the data
 df_atl = np.transpose(da)
@@ -174,7 +165,7 @@ cols = df_atl.columns.tolist()
 cols = [cols[-1]] + cols[ : -1]
 df_atl = df_atl.reindex(columns = cols)
 
-df_atl = df_atl.set_value(0, 'index', 'Atlanta')
+df_atl = df_atl.set_value(0, 'index', 'Atlanta Market')
 
 
 x = pd.Series([" "], index = df_atl.index)
@@ -228,13 +219,25 @@ df_sea['index'] = df_sea.index
 df_sea = df_sea.reset_index(drop = True)
 df_sea = df_sea.reindex(columns = cols)
 
-df_sea = df_sea.set_value(0, 'index', 'Seattle')
+df_sea = df_sea.set_value(0, 'index', 'Seattle Market')
 
 
 
-## Bind datasets together and remove NaNs
+## BIND datasets together and remove NaNs
 frame = [df_ag, df_atl, df_sea]
 df_f = pd.concat(frame)
+
+
+## BIND: add header row to describe report
+title = ' Subscriber Report Week-Over-Week 2017'
+d = pd.DataFrame(columns = df_f.columns)
+d = d.set_value(len(d), 'index', " ")
+df_f.index = df_f.index + 1
+df_f = d.append(df_f)
+df_f = df_f.set_value(0, 'index', title)
+
+
+
 
 df_f = df_f.fillna("")
 
