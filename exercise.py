@@ -83,38 +83,63 @@ wk_word = np.array(wk_word)
 
 
 ## Set up separate dataframes for each market
+## Set up column names to be used for each data subset
+wkcol = ['Week', 'Beginning Subscribers', 'new_subscriptions','self_install', 'professional_install', 'Total Disconnects', 'post_install_returns', 'disconnects' ,'Net Gain', 'Ending Subs']
+moncol = ['Month', 'Beginning Subscribers', 'new_subscriptions','self_install', 'professional_install', 'Total Disconnects', 'post_install_returns', 'disconnects' ,'Net Gain', 'Ending Subs']
+qucol = ['Quarter', 'Beginning Subscribers', 'new_subscriptions','self_install', 'professional_install', 'Total Disconnects', 'post_install_returns', 'disconnects' ,'Net Gain', 'Ending Subs']
 
-## Aggregate
+## AGGREGATE: subset for the weekly data
 dc = df.groupby(['Week']).sum().reset_index()
 dc['Week'] = dc['Week'].astype(int)
 dc = dc.sort_values('Week', ascending = False)
 
-## have to sort the month data
+## AGGREGATE: Set up weekly cumulatvie beg and end subscription numbers
+dc['Ending Subs'] = dc['Net Gain'].cumsum()
+dc['Beginning Subscribers'] = dc['Ending Subs'] - dc['Net Gain']
+
+dc = dc[col]
+dc.columns = ['Week', 'Beginning Subscribers', 'Total Connects', 'Self Installs', 'Pro Installs', 'Total Disconnects', 'Post Install Returns', 'Disconnects',  'Net Gain', 'Ending Sub']
+
+## AGGREGATE: transpose weekly the data
+df_ag = np.transpose(dc)
+
+## AGGREGATE: add the word 'week' to the week data, clean up indexing
+df_ag.loc[['Week'], 0:132] = wk_word
+df_ag = df_ag.reset_index()
+df_ag = df_ag.set_value(0, 'index', 'Aggregate Market')
+x = pd.Series([""], index = df_ag.index)
+df_ag = df_ag.append(x, ignore_index=True)
+
+
+## AGGREGATE: select the monthly datasbusets
 dcm = df.groupby(['Month']).sum().reset_index()
 dcm['Month'] = pd.to_datetime(dcm['Month'])
 dcm = dcm.sort_values('Month', ascending = True)
 dcm['Month'] = dcm['Month'].apply(lambda x: x.strftime('%m-%Y'))
 dcm = dcm.reset_index(drop = True)
 
+## AGGREGATE: Set up monthly cumulatvie beg and end subscription numbers
+dcm['Ending Subs'] = dcm['Net Gain'].cumsum()
+dcm['Beginning Subscribers'] = dcm['Ending Subs'] - dcm['Net Gain']
+
+dcm = dcm[moncol]
+dcq.columns = ['Month', 'Beginning Subscribers', 'Total Connects', 'Self Installs', 'Pro Installs', 'Total Disconnects', 'Post Install Returns', 'Disconnects',  'Net Gain', 'Ending Sub']
+
+
+
+## AGGREGATE: select the quarterly datasbusets
 dcq = df.groupby(['Quarter']).sum().reset_index()
 dcq = dcq.sort_values('Quarter', ascending = True)
 
-## AGGREGATE: Set up cumulatvie beg and end subscription numbers
+## AGGREGATE: Set up quarterly cumulatvie beg and end subscription numbers
+dcq['Ending Subs'] = dcq['Net Gain'].cumsum()
+dcq['Beginning Subscribers'] = dcq['Ending Subs'] - dcq['Net Gain']
 
-dc['Ag_cul2'] = dc['Net Gain'].cumsum()
-
-for i in dc['Ag_cul']:
-	tot_ag.append(i)
-
-dc['Ending Subs'] = tot_ag2
-dc['Beginning Subscribers'] = dc['Ending Subs'] - dc['Net Gain']
+dcq = dcq[moncol]
+dcq.columns = ['Month', 'Beginning Subscribers', 'Total Connects', 'Self Installs', 'Pro Installs', 'Total Disconnects', 'Post Install Returns', 'Disconnects',  'Net Gain', 'Ending Sub']
 
 
-## AGGREGATE: Select the desired columns
-col = ['Week', 'Beginning Subscribers', 'new_subscriptions','self_install', 'professional_install', 'Total Disconnects', 'post_install_returns', 'disconnects' ,'Net Gain', 'Ending Subs']
 
-dc = dc[col]
-dc.columns = ['Week', 'Beginning Subscribers', 'Total Connects', 'Self Installs', 'Pro Installs', 'Total Disconnects', 'Post Install Returns', 'Disconnects',  'Net Gain', 'Ending Sub']
 
 
 ## AGGREGATE: transpose the data
