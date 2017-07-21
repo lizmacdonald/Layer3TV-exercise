@@ -224,10 +224,12 @@ df_sea = np.transpose(ds)
 df_sea.loc[['Week'], 0:132] = wk_word
 
 ## SEATTLE: add index names to first column of dataset
+df_sea['index'] = df_sea.index
 df_sea = df_sea.reset_index(drop = True)
-df_sea = df_sea.reindex(columns=cols)
+df_sea = df_sea.reindex(columns = cols)
 
 df_sea = df_sea.set_value(0, 'index', 'Seattle')
+
 
 
 ## Bind datasets together and remove NaNs
@@ -243,13 +245,10 @@ writer = pd.ExcelWriter('report.xlsx', engine = 'xlsxwriter')
 df_f.to_excel(writer, sheet_name = 'Weekly Data Report', index = False, header = False)
 
 workbook = writer.book
+
 worksheet = writer.sheets['Weekly Data Report']
 worksheet.set_column('A:A', 18)
 
+
 writer.save()
-
-
-
-
-
 
