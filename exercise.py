@@ -102,15 +102,27 @@ df.columns = ['dif', 'market', 'Beginning Subscribers', 'Total Connects', 'Self 
 
 ## Create dataframe for aggregate data 
 df_ag = df.groupby(['dif']).sum().reset_index()
-
 df_ag = np.transpose(df_ag)
 
+df_atl = df[df['market'] == 'Atlanta']
+df_atl = df_atl.groupby(['dif', 'market']).sum().reset_index()
+df_atl = np.transpose(df_atl)
+df_atl = df_atl.drop(['market', ])
+df_atl = df_atl.rename(index = {'dif': 'Atlanta'})
 
-## Set up column names to be the format I want
-df.columns = ['activity_date', 'market', 'Total Connects', 'Total Disconnects', 'Self Installs', 'Pro Installs', 'Disconnects', 'Post Install Returns', 'Total Subscribers', 'dif']
+## creating a column at the start of the df with the parameters to display
+df_atl['Market'] = df_atl.index
+y = df_atl[df_atl.columns[-1:]]
+df_atl.drop('Market', 1)
+df_atl.insert(0, 'Market', y)
 
-
-
+df_sea = df[df['market'] == 'Seattle']
+df_sea = df_sea.groupby(['dif', 'market']).sum().reset_index()
+df_sea = np.transpose(df_sea)
+df_sea = df_sea.drop(['market', ])
+df_sea = df_sea.rename(index = {'dif': 'Seattle'})
+df_sea['Market'] = df_sea.index
+y = df_sea[df_sea.columns[-1:]]
 
 
 
