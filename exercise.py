@@ -113,7 +113,7 @@ dc.columns = wk_fin
 dc = dc.sort_values('Week', ascending = True)
 dc = np.transpose(dc)
 
-### vector for all subsequent datasets
+### vector for subsequent datasets
 blankrow = pd.Series([""], index = dc.index)
 
 ## AGGREGATE: add the word 'week' to the week data, clean up indexing
@@ -150,8 +150,6 @@ dcm = dcm.reset_index()
 dcm = dcm.set_value(0, 'index', 'Aggregate Market')
 dcm = dcm.append(blankrow, ignore_index=True)
 
-
-
 ## AGGREGATE: select the quarterly datasbusets
 dcq = df.groupby(['Quarter']).sum().reset_index()
 dcq = dcq.sort_values('Quarter', ascending = True)
@@ -163,11 +161,11 @@ dcq['Beginning Subscribers'] = dcq['Ending Subs'] - dcq['Net Gain']
 dcq = dcq[qucol]
 dcq.columns = qu_fin
 
-## AGGREGATE: transpose the monthly data
+## AGGREGATE: transpose the quarterly data
 dcq = dcq.sort_values('Quarter', ascending = False)
 dcq = np.transpose(dcq)
 
-## AGGREGATE: clean up indexing
+## AGGREGATE: clean up quarterly indexing
 dcq = dcq.reset_index()
 dcq = dcq.set_value(0, 'index', 'Aggregate Market')
 dcq = dcq.append(blankrow, ignore_index=True)
@@ -178,69 +176,86 @@ dcq = dcq.append(blankrow, ignore_index=True)
 da = df[df['market'] == 'Atlanta']
 
 ## ATLANTA: subset for the weekly data
-da['Week'] = da['Week'].astype(int)
-da = da.groupby(['Week']).sum().reset_index()
-da = da.sort_values('Week', ascending = False)
+daw = da.groupby(['Week']).sum().reset_index()
+daw['Week'] = daw['Week'].astype(int)
+daw = daw.sort_values('Week', ascending = False)
 
 
 ## ATLANTA: Set up weekly cumulatvie beg and end subscription numbers
-da['Ending Subs'] = da['Net Gain'].cumsum()
-da['Beginning Subscribers'] = da['Ending Subs'] - da['Net Gain']
+daw['Ending Subs'] = daw['Net Gain'].cumsum()
+daw['Beginning Subscribers'] = daw['Ending Subs'] - daw['Net Gain']
 
-da = da[wkcol]
-da.columns = ['Week', 'Beginning Subscribers', 'Total Connects', 'Self Installs', 'Pro Installs', 'Total Disconnects', 'Post Install Returns', 'Disconnects',  'Net Gain', 'Ending Sub']
+daw = daw[wkcol]
+daw.columns = wk_fin
 
 ## ATLANTA: transpose weekly the data
-da = da.sort_values('Week', ascending = True)
-da = np.transpose(da)
+daw = daw.sort_values('Week', ascending = True)
+daw = np.transpose(daw)
 
 
 ## ATLANTA: add the word 'week' to the week data, clean up indexing
-da.loc[['Week'], 0:132] = wk_word
-da['index'] = da.index
-da = da.reset_index(drop = True)
-cols = da.columns.tolist()
+daw = daw.T.reset_index(drop=True).T
+daw.loc[['Week'], 0:132] = wk_word
+daw['index'] = daw.index
+daw = daw.reset_index(drop = True)
+cols = daw.columns.tolist()
 cols = [cols[-1]] + cols[ : -1]
-da = da.reindex(columns = cols)
-da = da.set_value(0, 'index', 'Atlanta Market')
-da = da.append(blankrow, ignore_index=True)
+daw = daw.reindex(columns = cols)
+daw = daw.set_value(0, 'index', 'Atlanta Market')
+blankrow = pd.Series([""], index = daw.index)
+daw = daw.append(blankrow, ignore_index=True)
 
 
 
 ## ATLANTA: select the monthly datasbusets
-dcm = df.groupby(['Month']).sum().reset_index()
-dcm['Month'] = pd.to_datetime(dcm['Month'])
-dcm = dcm.sort_values('Month', ascending = True)
-dcm['Month'] = dcm['Month'].apply(lambda x: x.strftime('%b-%Y'))
-dcm = dcm.reset_index(drop = True)
+dam = da.groupby(['Month']).sum().reset_index()
+dam['Month'] = pd.to_datetime(dam['Month'])
+dam = dam.sort_values('Month', ascending = True)
+dam['Month'] = dam['Month'].apply(lambda x: x.strftime('%b-%Y'))
+dam = dam.reset_index(drop = True)
 
 ## ATLANTA: Set up monthly cumulatvie beg and end subscription numbers
-dcm['Ending Subs'] = dcm['Net Gain'].cumsum()
-dcm['Beginning Subscribers'] = dcm['Ending Subs'] - dcm['Net Gain']
+dam['Ending Subs'] = dam['Net Gain'].cumsum()
+dam['Beginning Subscribers'] = dam['Ending Subs'] - dam['Net Gain']
 
-dcm = dcm[moncol]
-dcm.columns = ['Month', 'Beginning Subscribers', 'Total Connects', 'Self Installs', 'Pro Installs', 'Total Disconnects', 'Post Install Returns', 'Disconnects',  'Net Gain', 'Ending Sub']
+dam = dam[moncol]
+dam.columns = mon_fin
 
 
 ## ATLANTA: transpose the monthly data
-dcm['Month'] = pd.to_datetime(dcm['Month'])
-dcm = dcm.sort_values('Month', ascending = False)
-dcm['Month'] = dcm['Month'].apply(lambda x: x.strftime('%b-%Y'))
-dcm = np.transpose(dcm)
+dam['Month'] = pd.to_datetime(dam['Month'])
+dam = dam.sort_values('Month', ascending = False)
+dam['Month'] = dam['Month'].apply(lambda x: x.strftime('%b-%Y'))
+dam = np.transpose(dam)
 
-## AGGREGATE: clean up indexing
-dcm = dcm.reset_index()
-dcm = dcm.set_value(0, 'index', 'Aggregate Market')
-x = pd.Series([""], index = dcm.index)
-dcm = dcm.append(x, ignore_index=True)
-
-
+## ATLANTA: clean up monthly indexing
+dam = dam.reset_index()
+dam = dam.set_value(0, 'index', 'Aggregate Market')
+blankrow = pd.Series([""], index = dam.index)
+dam = dam.append(blankrow, ignore_index=True)
 
 
 
+## AGGREGATE: select the quarterly datasbusets
+daq = da.groupby(['Quarter']).sum().reset_index()
+daq = daq.sort_values('Quarter', ascending = True)
 
+## AGGREGATE: Set up quarterly cumulatvie beg and end subscription numbers
+daq['Ending Subs'] = daq['Net Gain'].cumsum()
+daq['Beginning Subscribers'] = daq['Ending Subs'] - daq['Net Gain']
 
+daq = daq[qucol]
+daq.columns = qu_fin
 
+## AGGREGATE: transpose the quarterly data
+daq = daq.sort_values('Quarter', ascending = False)
+daq = np.transpose(daq)
+
+## AGGREGATE: clean up quarterly indexing
+daq = daq.reset_index()
+daq = daq.set_value(0, 'index', 'Aggregate Market')
+blankrow = pd.Series([""], index = daq.index)
+daq = daq.append(blankrow, ignore_index=True)
 
 
 
