@@ -45,18 +45,7 @@ df['Week'] = 1 + df['Week']
 
 
 ## Set up monthy number columns
-month = []
-
-def diff_month(w):
-	return(max_day.year - w.year) * 12 + max_day.month - w.month
-
-for w in week:
-	month.append(diff_month(w))
-
-df['Month'] = month
-df['Month'] = df['Month'].astype(int)
-df['Month'] = 1 + df['Month']
-
+df['Month'] = df['activity_date'].apply(lambda x: x.strftime('%m-%Y'))
 
 ## Set up quarterly number column
 quart = pd.to_datetime(df['activity_date']).dt.quarter
@@ -97,28 +86,25 @@ wk_word = np.array(wk_word)
 
 ## Aggregate
 dc = df.groupby(['Week']).sum().reset_index()
+dc['Week'] = dc['Week'].astype(int)
+dc = dc.sort_values('Week', ascending = False)
+
+## have to sort the month data
+dcm = df.groupby(['Month']).sum().reset_index()
+dcm['Month'] = pd.to_datetime(dcm['Month'])
+dcm = dcm.sort_values('Month', ascending = True)
+dcm['Month'] = dcm['Month'].apply(lambda x: x.strftime('%m-%Y'))
+dcm = dcm.reset_index(drop = True)
+
+dcq = df.groupby(['Quarter']).sum().reset_index()
+dcq = dcq.sort_values('Quarter', ascending = True)
 
 ## AGGREGATE: Set up cumulatvie beg and end subscription numbers
 
-daily_ag = []
-daily_ag2 = []
-tot_ag = []
-tot_ag2 = []
-
-for i in dc['Net Gain']:
-	daily_ag.append(i)
-
-for i in reversed(daily_ag):
-	daily_ag2.append(i)
-
-dc['Ag_cul'] = daily_ag2
-dc['Ag_cul'] = dc['Ag_cul'].cumsum()
+dc['Ag_cul2'] = dc['Net Gain'].cumsum()
 
 for i in dc['Ag_cul']:
 	tot_ag.append(i)
-
-for i in reversed(tot_ag):
-	tot_ag2.append(i)
 
 dc['Ending Subs'] = tot_ag2
 dc['Beginning Subscribers'] = dc['Ending Subs'] - dc['Net Gain']
