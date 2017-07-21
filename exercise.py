@@ -85,8 +85,17 @@ wk_word = np.array(wk_word)
 ## Set up separate dataframes for each market
 ## Set up column names to be used for each data subset
 wkcol = ['Week', 'Beginning Subscribers', 'new_subscriptions','self_install', 'professional_install', 'Total Disconnects', 'post_install_returns', 'disconnects' ,'Net Gain', 'Ending Subs']
+
+wk_fin = ['Week', 'Beginning Subscribers', 'Total Connects', 'Self Installs', 'Pro Installs', 'Total Disconnects', 'Post Install Returns', 'Disconnects',  'Net Gain', 'Ending Sub']
+
 moncol = ['Month', 'Beginning Subscribers', 'new_subscriptions','self_install', 'professional_install', 'Total Disconnects', 'post_install_returns', 'disconnects' ,'Net Gain', 'Ending Subs']
+
+mon_fin = ['Month', 'Beginning Subscribers', 'Total Connects', 'Self Installs', 'Pro Installs', 'Total Disconnects', 'Post Install Returns', 'Disconnects',  'Net Gain', 'Ending Sub']
+
 qucol = ['Quarter', 'Beginning Subscribers', 'new_subscriptions','self_install', 'professional_install', 'Total Disconnects', 'post_install_returns', 'disconnects' ,'Net Gain', 'Ending Subs']
+
+qu_fin = ['Quarter', 'Beginning Subscribers', 'Total Connects', 'Self Installs', 'Pro Installs', 'Total Disconnects', 'Post Install Returns', 'Disconnects',  'Net Gain', 'Ending Sub']
+
 
 ## AGGREGATE: subset for the weekly data
 dc = df.groupby(['Week']).sum().reset_index()
@@ -98,19 +107,21 @@ dc['Ending Subs'] = dc['Net Gain'].cumsum()
 dc['Beginning Subscribers'] = dc['Ending Subs'] - dc['Net Gain']
 
 dc = dc[wkcol]
-dc.columns = ['Week', 'Beginning Subscribers', 'Total Connects', 'Self Installs', 'Pro Installs', 'Total Disconnects', 'Post Install Returns', 'Disconnects',  'Net Gain', 'Ending Sub']
+dc.columns = wk_fin
 
 ## AGGREGATE: transpose weekly the data
 dc = dc.sort_values('Week', ascending = True)
 dc = np.transpose(dc)
+
+### vector for all subsequent datasets
+blankrow = pd.Series([""], index = dc.index)
 
 ## AGGREGATE: add the word 'week' to the week data, clean up indexing
 dc = dc.T.reset_index(drop=True).T
 dc.loc[['Week'], 0:132] = wk_word
 dc = dc.reset_index()
 dc = dc.set_value(0, 'index', 'Aggregate Market')
-blankrow = pd.Series([""], index = dc.index)
-dc = dc.append(x, ignore_index=True)
+dc = dc.append(blankrow, ignore_index=True)
 
 
 ## AGGREGATE: select the monthly datasbusets
@@ -125,7 +136,7 @@ dcm['Ending Subs'] = dcm['Net Gain'].cumsum()
 dcm['Beginning Subscribers'] = dcm['Ending Subs'] - dcm['Net Gain']
 
 dcm = dcm[moncol]
-dcm.columns = ['Month', 'Beginning Subscribers', 'Total Connects', 'Self Installs', 'Pro Installs', 'Total Disconnects', 'Post Install Returns', 'Disconnects',  'Net Gain', 'Ending Sub']
+dcm.columns = mon_fin
 
 
 ## AGGREGATE: transpose the monthly data
@@ -150,7 +161,7 @@ dcq['Ending Subs'] = dcq['Net Gain'].cumsum()
 dcq['Beginning Subscribers'] = dcq['Ending Subs'] - dcq['Net Gain']
 
 dcq = dcq[qucol]
-dcq.columns = ['Quarter', 'Beginning Subscribers', 'Total Connects', 'Self Installs', 'Pro Installs', 'Total Disconnects', 'Post Install Returns', 'Disconnects',  'Net Gain', 'Ending Sub']
+dcq.columns = qu_fin
 
 ## AGGREGATE: transpose the monthly data
 dcq = dcq.sort_values('Quarter', ascending = False)
@@ -190,10 +201,9 @@ da['index'] = da.index
 da = da.reset_index(drop = True)
 cols = da.columns.tolist()
 cols = [cols[-1]] + cols[ : -1]
-da = df_atl.reindex(columns = cols)
-da = df_atl.set_value(0, 'index', 'Atlanta Market')
-x = pd.Series([" "], index = da.index)
-da = df_atl.append(x, ignore_index=True)
+da = da.reindex(columns = cols)
+da = da.set_value(0, 'index', 'Atlanta Market')
+da = da.append(blankrow, ignore_index=True)
 
 
 
