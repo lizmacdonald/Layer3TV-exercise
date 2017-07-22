@@ -347,25 +347,49 @@ dsq = dsq.append(blankrow, ignore_index=True)
 
 
 ## BIND datasets together and remove NaNs
+
+## WEEK: create the weekly report
 weekly_report = [dc, daw, dsw]
+weekly_report = pd.concat(weekly_report)
+
+## WEEK: add a header row to report
+wk_title = ' Subscriber Report Week-Over-Week 2017'
+wt = pd.DataFrame(columns = weekly_report.columns)
+wt = wt.set_value(len(wt), 'index', " ")
+weekly_report.index = weekly_report.index + 1
+weekly_report = wt.append(weekly_report)
+weekly_report = weekly_report.set_value(0, 'index', wk_title)
+weekly_report = weekly_report.fillna("")
 
 
+## MONTH: create the monthly report 
+monthly_report = [dcm, dam, dsm]
+monthly_report = pd.concat(monthly_report)
 
-df_f = pd.concat(frame)
+## MONTH: add a header row to report
+mon_title = ' Subscriber Report Month-Over-Month 2017'
+mt = pd.DataFrame(columns = monthly_report.columns)
+mt = mt.set_value(len(mt), 'index', " ")
+monthly_report.index = monthly_report.index + 1
+monthly_report = mt.append(monthly_report)
+monthly_report = monthly_report.set_value(0, 'index', mon_title)
+monthly_report = monthly_report.fillna("")
 
 
-## BIND: add header row to describe report
-title = ' Subscriber Report Week-Over-Week 2017'
-d = pd.DataFrame(columns = df_f.columns)
-d = d.set_value(len(d), 'index', " ")
-df_f.index = df_f.index + 1
-df_f = d.append(df_f)
-df_f = df_f.set_value(0, 'index', title)
+## QUARTER: create the quarterly report 
+quarterly_report = [dcq, daq, dsq]
+quarterly_report = pd.concat(quarterly_report)
+
+## QUARTER: add a header row to report
+qu_title = ' Subscriber Report Quarter-Over-Quarter 2017'
+qt = pd.DataFrame(columns = quarterly_report.columns)
+qt = qt.set_value(len(qt), 'index', " ")
+quarterly_report.index = quarterly_report.index + 1
+quarterly_report = qt.append(quarterly_report)
+quarterly_report = quarterly_report.set_value(0, 'index', qu_title)
+quarterly_report = quarterly_report.fillna("")
 
 
-
-
-df_f = df_f.fillna("")
 
 
 ## Write out the report
