@@ -7,7 +7,7 @@
 import openpyxl as px
 import pandas as pd
 import numpy as np
-import xlsxwriter
+import xlsxwriter as xlsxwriter
 from datetime import datetime
 
 
@@ -391,17 +391,14 @@ quarterly_report = quarterly_report.fillna("")
 
 
 
-
 ## Write out the report
-writer = pd.ExcelWriter('report.xlsx', engine = 'xlsxwriter')
 
-df_f.to_excel(writer, sheet_name = 'Weekly Data Report', index = False, header = False)
+writer = pd.ExcelWriter('Layer3tv_market_report.xlsx', engine = 'xlsxwriter')
 
-workbook = writer.book
-
-worksheet = writer.sheets['Weekly Data Report']
-worksheet.set_column('A:A', 18)
+weekly_report.to_excel(writer, sheet_name = 'Weekly Report', index = False, header = False)
+monthly_report.to_excel(writer, sheet_name = 'Monthly Report', index = False, header = False)
+quarterly_report.to_excel(writer, sheet_name = 'Quarterly Report', index
+ = False, header = False)
 
 
 writer.save()
-
