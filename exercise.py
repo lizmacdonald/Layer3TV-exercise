@@ -113,14 +113,13 @@ dc.columns = wk_fin
 dc = dc.sort_values('Week', ascending = True)
 dc = np.transpose(dc)
 
-### vector for subsequent datasets
-blankrow = pd.Series([""], index = dc.index)
 
 ## AGGREGATE: add the word 'week' to the week data, clean up indexing
 dc = dc.T.reset_index(drop=True).T
 dc.loc[['Week'], 0:132] = wk_word
 dc = dc.reset_index()
 dc = dc.set_value(0, 'index', 'Aggregate Market')
+blankrow = pd.Series([""], index = dc.index)
 dc = dc.append(blankrow, ignore_index=True)
 
 
@@ -230,7 +229,7 @@ dam = np.transpose(dam)
 
 ## ATLANTA: clean up monthly indexing
 dam = dam.reset_index()
-dam = dam.set_value(0, 'index', 'Aggregate Market')
+dam = dam.set_value(0, 'index', 'Atlanta Market')
 blankrow = pd.Series([""], index = dam.index)
 dam = dam.append(blankrow, ignore_index=True)
 
@@ -253,7 +252,7 @@ daq = np.transpose(daq)
 
 ## ATLANTA: clean up quarterly indexing
 daq = daq.reset_index()
-daq = daq.set_value(0, 'index', 'Aggregate Market')
+daq = daq.set_value(0, 'index', 'Atlanta Market')
 blankrow = pd.Series([""], index = daq.index)
 daq = daq.append(blankrow, ignore_index=True)
 
@@ -290,7 +289,7 @@ dsw = dsw.reset_index(drop = True)
 cols = dsw.columns.tolist()
 cols = [cols[-1]] + cols[ : -1]
 dsw = dsw.reindex(columns = cols)
-dsw = dsw.set_value(0, 'index', 'Atlanta Market')
+dsw = dsw.set_value(0, 'index', 'Seattle Market')
 blankrow = pd.Series([""], index = dsw.index)
 dsw = dsw.append(blankrow, ignore_index=True)
 
@@ -318,29 +317,29 @@ dsm = np.transpose(dsm)
 
 ## SEATTLE: clean up monthly indexing
 dsm = dsm.reset_index()
-dsm = dsm.set_value(0, 'index', 'Aggregate Market')
+dsm = dsm.set_value(0, 'index', 'Seattle Market')
 blankrow = pd.Series([""], index = dsm.index)
 dsm = dsm.append(blankrow, ignore_index=True)
 
 
-## ATLANTA: select the quarterly datasbusets
+## SEATTLE: select the quarterly datasbusets
 dsq = ds.groupby(['Quarter']).sum().reset_index()
 dsq = dsq.sort_values('Quarter', ascending = True)
 
-## ATLANTA: Set up quarterly cumulatvie beg and end subscription numbers
+## SEATTLE: Set up quarterly cumulatvie beg and end subscription numbers
 dsq['Ending Subs'] = dsq['Net Gain'].cumsum()
 dsq['Beginning Subscribers'] = dsq['Ending Subs'] - dsq['Net Gain']
 
 dsq = dsq[qucol]
 dsq.columns = qu_fin
 
-## ATLANTA: transpose the quarterly data
+## SEATTLE: transpose the quarterly data
 dsq = dsq.sort_values('Quarter', ascending = False)
 dsq = np.transpose(dsq)
 
-## ATLANTA: clean up quarterly indexing
+## SEATTLE: clean up quarterly indexing
 dsq = dsq.reset_index()
-dsq = dsq.set_value(0, 'index', 'Aggregate Market')
+dsq = dsq.set_value(0, 'index', 'Seattle Market')
 blankrow = pd.Series([""], index = dsq.index)
 dsq = dsq.append(blankrow, ignore_index=True)
 
@@ -399,6 +398,37 @@ weekly_report.to_excel(writer, sheet_name = 'Weekly Report', index = False, head
 monthly_report.to_excel(writer, sheet_name = 'Monthly Report', index = False, header = False)
 quarterly_report.to_excel(writer, sheet_name = 'Quarterly Report', index
  = False, header = False)
+
+workbook = writer.book
+
+worksheet = writer.sheets['Weekly Report']
+bold = workbook.add_format({'bold': True, 'font_size': 14})
+bold2 = workbook.add_format({'bold': True})
+worksheet.set_column('A:A', 17)
+worksheet.write(0, 0, wk_title, bold)
+worksheet.write(1, 0, 'Aggregate Market', bold2)
+worksheet.write(12, 0, 'Atlanta Market', bold2)
+worksheet.write(23, 0, 'Seattle Market', bold2)
+
+worksheet = writer.sheets['Monthly Report']
+bold = workbook.add_format({'bold': True, 'font_size': 14})
+bold2 = workbook.add_format({'bold': True})
+worksheet.set_column('A:A', 17)
+worksheet.write(0, 0, mon_title, bold)
+worksheet.write(1, 0, 'Aggregate Market', bold2)
+worksheet.write(12, 0, 'Atlanta Market', bold2)
+worksheet.write(23, 0, 'Seattle Market', bold2)
+
+worksheet = writer.sheets['Quarterly Report']
+bold = workbook.add_format({'bold': True, 'font_size': 14})
+bold2 = workbook.add_format({'bold': True})
+worksheet.set_column('A:A', 17)
+worksheet.write(0, 0, qu_title, bold)
+worksheet.write(1, 0, 'Aggregate Market', bold2)
+worksheet.write(12, 0, 'Atlanta Market', bold2)
+worksheet.write(23, 0, 'Seattle Market', bold2)
+
+
 
 
 writer.save()
