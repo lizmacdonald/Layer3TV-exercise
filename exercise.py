@@ -8,10 +8,9 @@ import openpyxl as px
 import pandas as pd
 import numpy as np
 import xlsxwriter as xlsxwriter
-from datetime import datetime
 
 
-## read in data
+## Read in data
 dat = px.load_workbook('subscriber-data.xlsx', data_only=True)
 ws = dat['data']
 
@@ -35,6 +34,7 @@ for d in days:
 for w in week:
 	dif.append(int((max_day - w).days))
 
+
 ## Need to add a 1 to the wk number so the week doesn't start at zero
 for i in dif:
 	wknum.append(i / 7)
@@ -44,12 +44,12 @@ df['Week'] = df['Week'].astype(int)
 df['Week'] = 1 + df['Week']
 
 
-## Set up monthy number columns
+## Set up month column
 df['Month'] = df['activity_date'].apply(lambda x: x.strftime('%m-%Y'))
 
-## Set up quarterly number column
-quart = pd.to_datetime(df['activity_date']).dt.quarter
 
+## Set up quarter column
+quart = pd.to_datetime(df['activity_date']).dt.quarter
 year = []
 
 for d in days:
@@ -70,8 +70,7 @@ df['Total Disconnects'] = df['post_install_returns'] + df['disconnects']
 df['Net Gain'] = df['new_subscriptions'] - df['Total Disconnects']
 
 
-## Create a list for adding in the word "week" before the week number
-
+## Create a list for adding in the word "week" before the week number later on
 df['Week'] = df['Week'].astype(str)
 wk_unique = df.Week.unique()
 wk_word = []
@@ -82,7 +81,6 @@ for i in wk_unique:
 wk_word = np.array(wk_word)
 
 
-## Set up separate dataframes for each market
 ## Set up column names to be used for each data subset
 wkcol = ['Week', 'Beginning Subscribers', 'new_subscriptions','self_install', 'professional_install', 'Total Disconnects', 'post_install_returns', 'disconnects' ,'Net Gain', 'Ending Subs']
 
@@ -97,17 +95,21 @@ qucol = ['Quarter', 'Beginning Subscribers', 'new_subscriptions','self_install',
 qu_fin = ['Quarter', 'Beginning Subscribers', 'Total Connects', 'Self Installs', 'Pro Installs', 'Total Disconnects', 'Post Install Returns', 'Disconnects',  'Net Gain', 'Ending Sub']
 
 
+## Set up separate dataframes for each market
+
 ## AGGREGATE: subset for the weekly data
 dc = df.groupby(['Week']).sum().reset_index()
 dc['Week'] = dc['Week'].astype(int)
 dc = dc.sort_values('Week', ascending = False)
 
-## AGGREGATE: Set up weekly cumulatvie beg and end subscription numbers
+
+## AGGREGATE: Set up weekly cumulatvie beg and end subscription numbers and select appropriate columns
 dc['Ending Subs'] = dc['Net Gain'].cumsum()
 dc['Beginning Subscribers'] = dc['Ending Subs'] - dc['Net Gain']
 
 dc = dc[wkcol]
 dc.columns = wk_fin
+
 
 ## AGGREGATE: transpose weekly the data
 dc = dc.sort_values('Week', ascending = True)
@@ -123,14 +125,15 @@ blankrow = pd.Series([""], index = dc.index)
 dc = dc.append(blankrow, ignore_index=True)
 
 
-## AGGREGATE: select the monthly datasbusets
+## AGGREGATE: select the monthly databases
 dcm = df.groupby(['Month']).sum().reset_index()
 dcm['Month'] = pd.to_datetime(dcm['Month'])
 dcm = dcm.sort_values('Month', ascending = True)
 dcm['Month'] = dcm['Month'].apply(lambda x: x.strftime('%b-%Y'))
 dcm = dcm.reset_index(drop = True)
 
-## AGGREGATE: Set up monthly cumulatvie beg and end subscription numbers
+
+## AGGREGATE: Set up monthly cumulatvie beg and end subscription numbers and select appropriate columns
 dcm['Ending Subs'] = dcm['Net Gain'].cumsum()
 dcm['Beginning Subscribers'] = dcm['Ending Subs'] - dcm['Net Gain']
 
@@ -144,14 +147,17 @@ dcm = dcm.sort_values('Month', ascending = False)
 dcm['Month'] = dcm['Month'].apply(lambda x: x.strftime('%b-%Y'))
 dcm = np.transpose(dcm)
 
+
 ## AGGREGATE: clean up indexing
 dcm = dcm.reset_index()
 dcm = dcm.set_value(0, 'index', 'Aggregate Market')
 dcm = dcm.append(blankrow, ignore_index=True)
 
+
 ## AGGREGATE: select the quarterly datasbusets
 dcq = df.groupby(['Quarter']).sum().reset_index()
 dcq = dcq.sort_values('Quarter', ascending = True)
+
 
 ## AGGREGATE: Set up quarterly cumulatvie beg and end subscription numbers
 dcq['Ending Subs'] = dcq['Net Gain'].cumsum()
@@ -160,9 +166,11 @@ dcq['Beginning Subscribers'] = dcq['Ending Subs'] - dcq['Net Gain']
 dcq = dcq[qucol]
 dcq.columns = qu_fin
 
+
 ## AGGREGATE: transpose the quarterly data
 dcq = dcq.sort_values('Quarter', ascending = False)
 dcq = np.transpose(dcq)
+
 
 ## AGGREGATE: clean up quarterly indexing
 dcq = dcq.reset_index()
@@ -173,6 +181,7 @@ dcq = dcq.append(blankrow, ignore_index=True)
 
 ## ATLANTA: select datasubset
 da = df[df['market'] == 'Atlanta']
+
 
 ## ATLANTA: subset for the weekly data
 daw = da.groupby(['Week']).sum().reset_index()
@@ -186,6 +195,7 @@ daw['Beginning Subscribers'] = daw['Ending Subs'] - daw['Net Gain']
 
 daw = daw[wkcol]
 daw.columns = wk_fin
+
 
 ## ATLANTA: transpose weekly the data
 daw = daw.sort_values('Week', ascending = True)
@@ -213,6 +223,7 @@ dam = dam.sort_values('Month', ascending = True)
 dam['Month'] = dam['Month'].apply(lambda x: x.strftime('%b-%Y'))
 dam = dam.reset_index(drop = True)
 
+
 ## ATLANTA: Set up monthly cumulatvie beg and end subscription numbers
 dam['Ending Subs'] = dam['Net Gain'].cumsum()
 dam['Beginning Subscribers'] = dam['Ending Subs'] - dam['Net Gain']
@@ -227,12 +238,12 @@ dam = dam.sort_values('Month', ascending = False)
 dam['Month'] = dam['Month'].apply(lambda x: x.strftime('%b-%Y'))
 dam = np.transpose(dam)
 
+
 ## ATLANTA: clean up monthly indexing
 dam = dam.reset_index()
 dam = dam.set_value(0, 'index', 'Atlanta Market')
 blankrow = pd.Series([""], index = dam.index)
 dam = dam.append(blankrow, ignore_index=True)
-
 
 
 ## ATLANTA: select the quarterly datasbusets
@@ -246,9 +257,11 @@ daq['Beginning Subscribers'] = daq['Ending Subs'] - daq['Net Gain']
 daq = daq[qucol]
 daq.columns = qu_fin
 
+
 ## ATLANTA: transpose the quarterly data
 daq = daq.sort_values('Quarter', ascending = False)
 daq = np.transpose(daq)
+
 
 ## ATLANTA: clean up quarterly indexing
 daq = daq.reset_index()
@@ -301,6 +314,7 @@ dsm = dsm.sort_values('Month', ascending = True)
 dsm['Month'] = dsm['Month'].apply(lambda x: x.strftime('%b-%Y'))
 dsm = dsm.reset_index(drop = True)
 
+
 ## SEATTLE: Set up monthly cumulatvie beg and end subscription numbers
 dsm['Ending Subs'] = dsm['Net Gain'].cumsum()
 dsm['Beginning Subscribers'] = dsm['Ending Subs'] - dsm['Net Gain']
@@ -315,6 +329,7 @@ dsm = dsm.sort_values('Month', ascending = False)
 dsm['Month'] = dsm['Month'].apply(lambda x: x.strftime('%b-%Y'))
 dsm = np.transpose(dsm)
 
+
 ## SEATTLE: clean up monthly indexing
 dsm = dsm.reset_index()
 dsm = dsm.set_value(0, 'index', 'Seattle Market')
@@ -326,6 +341,7 @@ dsm = dsm.append(blankrow, ignore_index=True)
 dsq = ds.groupby(['Quarter']).sum().reset_index()
 dsq = dsq.sort_values('Quarter', ascending = True)
 
+
 ## SEATTLE: Set up quarterly cumulatvie beg and end subscription numbers
 dsq['Ending Subs'] = dsq['Net Gain'].cumsum()
 dsq['Beginning Subscribers'] = dsq['Ending Subs'] - dsq['Net Gain']
@@ -333,9 +349,11 @@ dsq['Beginning Subscribers'] = dsq['Ending Subs'] - dsq['Net Gain']
 dsq = dsq[qucol]
 dsq.columns = qu_fin
 
+
 ## SEATTLE: transpose the quarterly data
 dsq = dsq.sort_values('Quarter', ascending = False)
 dsq = np.transpose(dsq)
+
 
 ## SEATTLE: clean up quarterly indexing
 dsq = dsq.reset_index()
@@ -351,6 +369,7 @@ dsq = dsq.append(blankrow, ignore_index=True)
 weekly_report = [dc, daw, dsw]
 weekly_report = pd.concat(weekly_report)
 
+
 ## WEEK: add a header row to report
 wk_title = ' Subscriber Report Week-Over-Week 2017'
 wt = pd.DataFrame(columns = weekly_report.columns)
@@ -364,6 +383,7 @@ weekly_report = weekly_report.fillna("")
 ## MONTH: create the monthly report 
 monthly_report = [dcm, dam, dsm]
 monthly_report = pd.concat(monthly_report)
+
 
 ## MONTH: add a header row to report
 mon_title = ' Subscriber Report Month-Over-Month 2017'
@@ -379,6 +399,7 @@ monthly_report = monthly_report.fillna("")
 quarterly_report = [dcq, daq, dsq]
 quarterly_report = pd.concat(quarterly_report)
 
+
 ## QUARTER: add a header row to report
 qu_title = ' Subscriber Report Quarter-Over-Quarter 2017'
 qt = pd.DataFrame(columns = quarterly_report.columns)
@@ -391,7 +412,6 @@ quarterly_report = quarterly_report.fillna("")
 
 
 ## Write out the report
-
 writer = pd.ExcelWriter('Layer3tv_market_report.xlsx', engine = 'xlsxwriter')
 
 weekly_report.to_excel(writer, sheet_name = 'Weekly Report', index = False, header = False)
@@ -401,6 +421,8 @@ quarterly_report.to_excel(writer, sheet_name = 'Quarterly Report', index
 
 workbook = writer.book
 
+
+## format the weekly report
 worksheet = writer.sheets['Weekly Report']
 bold = workbook.add_format({'bold': True, 'font_size': 14})
 bold2 = workbook.add_format({'bold': True})
@@ -410,6 +432,8 @@ worksheet.write(1, 0, 'Aggregate Market', bold2)
 worksheet.write(12, 0, 'Atlanta Market', bold2)
 worksheet.write(23, 0, 'Seattle Market', bold2)
 
+
+## format the monthly report
 worksheet = writer.sheets['Monthly Report']
 bold = workbook.add_format({'bold': True, 'font_size': 14})
 bold2 = workbook.add_format({'bold': True})
@@ -419,6 +443,8 @@ worksheet.write(1, 0, 'Aggregate Market', bold2)
 worksheet.write(12, 0, 'Atlanta Market', bold2)
 worksheet.write(23, 0, 'Seattle Market', bold2)
 
+
+## format the quarterly report
 worksheet = writer.sheets['Quarterly Report']
 bold = workbook.add_format({'bold': True, 'font_size': 14})
 bold2 = workbook.add_format({'bold': True})
@@ -427,8 +453,6 @@ worksheet.write(0, 0, qu_title, bold)
 worksheet.write(1, 0, 'Aggregate Market', bold2)
 worksheet.write(12, 0, 'Atlanta Market', bold2)
 worksheet.write(23, 0, 'Seattle Market', bold2)
-
-
 
 
 writer.save()
