@@ -88,12 +88,8 @@ dc['Beginning Subscribers'] = dc['Ending Subs'] - dc['Net Gain']
 
 
 ## AGGREGATE: transpose weekly the data
-dc = dc.sort_values('wksort', ascending = False)
-
 dc = dc[wkcol]
 dc.columns = wk_fin
-
-
 dc = np.transpose(dc)
 
 
@@ -123,7 +119,6 @@ dcm.columns = mon_fin
 
 ## AGGREGATE: transpose the monthly data
 dcm['Month'] = pd.to_datetime(dcm['Month'])
-dcm = dcm.sort_values('Month', ascending = False)
 dcm['Month'] = dcm['Month'].apply(lambda x: x.strftime('%b-%Y'))
 dcm = np.transpose(dcm)
 
@@ -148,7 +143,6 @@ dcq.columns = qu_fin
 
 
 ## AGGREGATE: transpose the quarterly data
-dcq = dcq.sort_values('Quarter', ascending = False)
 dcq = np.transpose(dcq)
 
 
@@ -175,8 +169,6 @@ daw['Beginning Subscribers'] = daw['Ending Subs'] - daw['Net Gain']
 
 
 ## ATLANTA: transpose weekly the data
-daw = daw.sort_values('wksort', ascending = False)
-
 daw = daw[wkcol]
 daw.columns = wk_fin
 
@@ -214,7 +206,6 @@ dam.columns = mon_fin
 
 ## ATLANTA: transpose the monthly data
 dam['Month'] = pd.to_datetime(dam['Month'])
-dam = dam.sort_values('Month', ascending = False)
 dam['Month'] = dam['Month'].apply(lambda x: x.strftime('%b-%Y'))
 dam = np.transpose(dam)
 
@@ -239,7 +230,6 @@ daq.columns = qu_fin
 
 
 ## ATLANTA: transpose the quarterly data
-daq = daq.sort_values('Quarter', ascending = False)
 daq = np.transpose(daq)
 
 
@@ -269,8 +259,6 @@ dsw['Beginning Subscribers'] = dsw['Ending Subs'] - dsw['Net Gain']
 
 
 ## SEATTLE: transpose add the word 'week' to the week data, clean up indexing
-dsw = dsw.sort_values('wksort', ascending = False)
-
 dsw = dsw[wkcol]
 dsw.columns = wk_fin
 
@@ -307,7 +295,6 @@ dsm.columns = mon_fin
 
 ## SEATTLE: transpose the monthly data
 dsm['Month'] = pd.to_datetime(dsm['Month'])
-dsm = dsm.sort_values('Month', ascending = False)
 dsm['Month'] = dsm['Month'].apply(lambda x: x.strftime('%b-%Y'))
 dsm = np.transpose(dsm)
 
@@ -333,7 +320,6 @@ dsq.columns = qu_fin
 
 
 ## SEATTLE: transpose the quarterly data
-dsq = dsq.sort_values('Quarter', ascending = False)
 dsq = np.transpose(dsq)
 
 
@@ -409,6 +395,7 @@ worksheet = writer.sheets['Weekly Report']
 bold = workbook.add_format({'bold': True, 'font_size': 14})
 bold2 = workbook.add_format({'bold': True})
 worksheet.set_column('A:A', 17)
+worksheet.set_column('B:EE', 11)
 worksheet.write(0, 0, wk_title, bold)
 worksheet.write(1, 0, 'Aggregate Market', bold2)
 worksheet.write(12, 0, 'Atlanta Market', bold2)
