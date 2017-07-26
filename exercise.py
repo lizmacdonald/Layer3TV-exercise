@@ -339,7 +339,7 @@ weekly_report = pd.concat(weekly_report)
 
 
 ## WEEK: add a header row to report
-wk_title = ' Subscriber Report Week-Over-Week 2017'
+wk_title = ' Subscriber Report Week-Over-Week 2015-2017'
 wt = pd.DataFrame(columns = weekly_report.columns)
 wt = wt.set_value(len(wt), 'index', " ")
 weekly_report.index = weekly_report.index + 1
@@ -354,7 +354,7 @@ monthly_report = pd.concat(monthly_report)
 
 
 ## MONTH: add a header row to report
-mon_title = ' Subscriber Report Month-Over-Month 2017'
+mon_title = ' Subscriber Report Month-Over-Month 2015-2017'
 mt = pd.DataFrame(columns = monthly_report.columns)
 mt = mt.set_value(len(mt), 'index', " ")
 monthly_report.index = monthly_report.index + 1
@@ -369,7 +369,7 @@ quarterly_report = pd.concat(quarterly_report)
 
 
 ## QUARTER: add a header row to report
-qu_title = ' Subscriber Report Quarter-Over-Quarter 2017'
+qu_title = ' Subscriber Report Quarter-Over-Quarter 2015-2017'
 qt = pd.DataFrame(columns = quarterly_report.columns)
 qt = qt.set_value(len(qt), 'index', " ")
 quarterly_report.index = quarterly_report.index + 1
