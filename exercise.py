@@ -17,31 +17,18 @@ ws = dat['data']
 df = pd.DataFrame(ws.values)
 df.columns = [df.iloc[0]]
 df = df.drop([0, ])
+pd.options.display.float_format = '${:,.2f}'.format
 
+### set up week number column
+week = pd.to_datetime(df['activity_date']).dt.week
+wk = []
+for i in week:
+	wk.append(str("%02d" % (i, )))
 
-## Set up week number column
-dat_form = "%Y-%m-%d %H:%S:%M"
-max_day = pd.to_datetime(df.iloc[1,0], format = dat_form)
-days = df.iloc[:,0]
+df['Week'] = df['activity_date'].apply(lambda x: x.strftime('%Y'))
+df['wk num'] = wk
+df['Week'] = 'Week ' + df['wk num'] + ' ' + df['Week'].astype(str)
 
-week = []
-dif = []
-wknum = []
-
-for d in days:
-	week.append(pd.to_datetime(d, format = dat_form))
-
-for w in week:
-	dif.append(int((max_day - w).days))
-
-
-## Need to add a 1 to the wk number so the week doesn't start at zero
-for i in dif:
-	wknum.append(i / 7)
-
-df['Week'] = wknum
-df['Week'] = df['Week'].astype(int)
-df['Week'] = 1 + df['Week']
 
 
 ## Set up month column
@@ -50,13 +37,8 @@ df['Month'] = df['activity_date'].apply(lambda x: x.strftime('%m-%Y'))
 
 ## Set up quarter column
 quart = pd.to_datetime(df['activity_date']).dt.quarter
-year = []
-
-for d in days:
-	year.append(d.year)
-
-df['Quarter'] = year
-df['Quarter'] = df['Quarter'].astype(str) + ' ' + 'Q' + quart.astype(str)
+df['Quarter'] = df['activity_date'].apply(lambda x: x.strftime('%Y'))
+df['Quarter'] = df['Quarter'].astype(str) + ' Q' + quart.astype(str)
 
 
 ## Change the type of the columns to numeric
@@ -68,17 +50,6 @@ for col in ['new_subscriptions', 'self_install', 'professional_install', 'discon
 df['Total Disconnects'] = df['post_install_returns'] + df['disconnects']
 
 df['Net Gain'] = df['new_subscriptions'] - df['Total Disconnects']
-
-
-## Create a list for adding in the word "week" before the week number later on
-df['Week'] = df['Week'].astype(str)
-wk_unique = df.Week.unique()
-wk_word = []
-
-for i in wk_unique:
-	wk_word.append('Week ' + str(i))
-
-wk_word = np.array(wk_word)
 
 
 ## Set up column names to be used for each data subset
@@ -98,9 +69,12 @@ qu_fin = ['Quarter', 'Beginning Subscribers', 'Total Connects', 'Self Installs',
 ## Set up separate dataframes for each market
 
 ## AGGREGATE: subset for the weekly data
+df['week num'] = df['week num'].astype(int)
+df = df.sort_values('week num', ascending = False)
+
+
 dc = df.groupby(['Week']).sum().reset_index()
-dc['Week'] = dc['Week'].astype(int)
-dc = dc.sort_values('Week', ascending = False)
+
 
 
 ## AGGREGATE: Set up weekly cumulatvie beg and end subscription numbers and select appropriate columns
