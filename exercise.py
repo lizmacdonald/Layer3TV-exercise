@@ -17,17 +17,24 @@ ws = dat['data']
 df = pd.DataFrame(ws.values)
 df.columns = [df.iloc[0]]
 df = df.drop([0, ])
-pd.options.display.float_format = '${:,.2f}'.format
+
 
 ### set up week number column
+df['activity_date'] = pd.to_datetime(df['activity_date'])
+
 week = pd.to_datetime(df['activity_date']).dt.week
 wk = []
 for i in week:
 	wk.append(str("%02d" % (i, )))
 
-df['Week'] = df['activity_date'].apply(lambda x: x.strftime('%Y'))
-df['wk num'] = wk
-df['Week'] = 'Week ' + df['wk num'] + ' ' + df['Week'].astype(str)
+df['wksort'] = df['activity_date'].apply(lambda x: x.strftime('%Y')).astype(str) + wk
+
+### Change the first couple of days in 2016 to be 2015 and 2017 to be 2016 due to them landing in the middle of the acutal week
+d1 = df.wksort == '201653'
+d2 = df.wksort == '201752'
+colname = 'wksort'
+df.loc[d1, colname] = '201553'
+df.loc[d2, colname] = '201652'
 
 
 
@@ -69,30 +76,29 @@ qu_fin = ['Quarter', 'Beginning Subscribers', 'Total Connects', 'Self Installs',
 ## Set up separate dataframes for each market
 
 ## AGGREGATE: subset for the weekly data
-df['week num'] = df['week num'].astype(int)
-df = df.sort_values('week num', ascending = False)
-
-
-dc = df.groupby(['Week']).sum().reset_index()
-
+dc = df.groupby(['wksort']).sum().reset_index()
+dc = dc.sort_values('wksort', ascending = True)
+dc['Week'] = 'Week ' + dc['wksort'].map(lambda x: x[4:6]).astype(str) + " " + dc['wksort'].map(lambda x: x[0:4]).astype(str)
 
 
 ## AGGREGATE: Set up weekly cumulatvie beg and end subscription numbers and select appropriate columns
 dc['Ending Subs'] = dc['Net Gain'].cumsum()
 dc['Beginning Subscribers'] = dc['Ending Subs'] - dc['Net Gain']
 
+
+
+## AGGREGATE: transpose weekly the data
+dc = dc.sort_values('wksort', ascending = False)
+
 dc = dc[wkcol]
 dc.columns = wk_fin
 
 
-## AGGREGATE: transpose weekly the data
-dc = dc.sort_values('Week', ascending = True)
 dc = np.transpose(dc)
 
 
 ## AGGREGATE: add the word 'week' to the week data, clean up indexing
 dc = dc.T.reset_index(drop=True).T
-dc.loc[['Week'], 0:132] = wk_word
 dc = dc.reset_index()
 dc = dc.set_value(0, 'index', 'Aggregate Market')
 blankrow = pd.Series([""], index = dc.index)
@@ -157,28 +163,28 @@ dcq = dcq.append(blankrow, ignore_index=True)
 da = df[df['market'] == 'Atlanta']
 
 
-## ATLANTA: subset for the weekly data
-daw = da.groupby(['Week']).sum().reset_index()
-daw['Week'] = daw['Week'].astype(int)
-daw = daw.sort_values('Week', ascending = False)
 
+## ATLANTA: subset for the weekly data
+daw = da.groupby(['wksort']).sum().reset_index()
+daw = daw.sort_values('wksort', ascending = True)
+daw['Week'] = 'Week ' + daw['wksort'].map(lambda x: x[4:6]).astype(str) + " " + daw['wksort'].map(lambda x: x[0:4]).astype(str)
 
 ## ATLANTA: Set up weekly cumulatvie beg and end subscription numbers
 daw['Ending Subs'] = daw['Net Gain'].cumsum()
 daw['Beginning Subscribers'] = daw['Ending Subs'] - daw['Net Gain']
 
+
+## ATLANTA: transpose weekly the data
+daw = daw.sort_values('wksort', ascending = False)
+
 daw = daw[wkcol]
 daw.columns = wk_fin
 
-
-## ATLANTA: transpose weekly the data
-daw = daw.sort_values('Week', ascending = True)
 daw = np.transpose(daw)
 
 
 ## ATLANTA: add the word 'week' to the week data, clean up indexing
 daw = daw.T.reset_index(drop=True).T
-daw.loc[['Week'], 0:132] = wk_word
 daw['index'] = daw.index
 daw = daw.reset_index(drop = True)
 cols = daw.columns.tolist()
@@ -249,28 +255,30 @@ daq = daq.append(blankrow, ignore_index=True)
 ds = df[df['market'] == 'Seattle']
 
 
+
 ## SEATTLE: subset for the weekly data
-dsw = ds.groupby(['Week']).sum().reset_index()
-dsw['Week'] = dsw['Week'].astype(int)
-dsw = dsw.sort_values('Week', ascending = False)
+dsw = ds.groupby(['wksort']).sum().reset_index()
+dsw = dsw.sort_values('wksort', ascending = True)
+dsw['Week'] = 'Week ' + dsw['wksort'].map(lambda x: x[4:6]).astype(str) + " " + dsw['wksort'].map(lambda x: x[0:4]).astype(str)
+
 
 
 ## SEATTLE: Set up weekly cumulatvie beg and end subscription numbers
 dsw['Ending Subs'] = dsw['Net Gain'].cumsum()
 dsw['Beginning Subscribers'] = dsw['Ending Subs'] - dsw['Net Gain']
 
+
+## SEATTLE: transpose add the word 'week' to the week data, clean up indexing
+dsw = dsw.sort_values('wksort', ascending = False)
+
 dsw = dsw[wkcol]
 dsw.columns = wk_fin
 
-
-## SEATTLE: transpose add the word 'week' to the week data, clean up indexing
-dsw = dsw.sort_values('Week', ascending = True)
 dsw = np.transpose(dsw)
 
 
 ## SEATTLE: add the word 'week' to the week data, clean up indexing
 dsw = dsw.T.reset_index(drop=True).T
-dsw.loc[['Week'], 0:132] = wk_word
 dsw['index'] = dsw.index
 dsw = dsw.reset_index(drop = True)
 cols = dsw.columns.tolist()
